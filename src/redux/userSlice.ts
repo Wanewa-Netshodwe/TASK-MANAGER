@@ -1,8 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-const initialState ={
-
-}
-//default user 
 export const  defaultUser={
     bio:"",
     last_seen:"",
@@ -12,6 +8,11 @@ export const  defaultUser={
     img:"",
     isOnline:""
 }
+const initialState ={
+currentUser:defaultUser
+}
+//default user 
+
 
 const userSlice = createSlice({
     name:"user",
@@ -19,6 +20,7 @@ const userSlice = createSlice({
     reducers:{
         setUser:(state,action)=>{
                 //set loged in user
+                state.currentUser = action.payload
         },
         setUsers:(state,action)=>{
             //set all users

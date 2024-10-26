@@ -4,6 +4,8 @@ import { faEnvelope, faLock, faUser } from '@fortawesome/free-solid-svg-icons'
 import Button from './Button.tsx'
 import { BE_signup ,BE_login} from '../backend/Queries.ts'
 import { useNavigate } from 'react-router-dom'
+import {useDispatch} from 'react-redux'
+import { AppDispatch } from '../redux/store.ts'
 type Props = {
   login?:boolean,
   s?:string
@@ -15,7 +17,7 @@ export default function Form({login,s}:Props) {
    const [password,setPassword] = useState('')
    const [email,setEmail] = useState('')
    const [signupLoading,setSignupLoading] = useState(false)
-
+   const dispatch = useDispatch<AppDispatch>()
    const goTo=useNavigate()
    const resetForm=()=>{
       setPassword('')
@@ -28,14 +30,14 @@ export default function Form({login,s}:Props) {
       username,
       password
     }
-    BE_signup(data,setSignupLoading,resetForm,goTo)
+    BE_signup(data,setSignupLoading,resetForm,goTo,dispatch)
     }
     const handleLogin=()=>{
       const data={
         username,
         password
       }
-      BE_login(data,setSignupLoading,resetForm,goTo)
+      BE_login(data,setSignupLoading,resetForm,goTo,dispatch)
       }
   return (
     <div className={`mx-auto w-full ${s}  bg-formbg

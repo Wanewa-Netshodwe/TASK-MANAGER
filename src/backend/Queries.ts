@@ -5,7 +5,10 @@ import { NavigateFunction } from "react-router-dom"
 import { doc,setDoc,serverTimestamp, getDoc } from "firebase/firestore"
 import { userType } from "../Types.ts"
 import { error } from "../utils/toast.ts"
-import { defaultUser } from "../redux/userSlice.ts"
+import { defaultUser, setUser } from "../redux/userSlice.ts"
+import { AppDispatch } from "../redux/store.ts"
+import { GenerateAvator } from "../utils/GenerateAvator.ts"
+import { convertTime } from "../utils/ConvertTime.ts"
 //Collection Names
 const USERCOLLECTION ='users'
 
@@ -16,7 +19,8 @@ export const BE_signup =(data:{
 },
 isLoading:React.Dispatch<React.SetStateAction<boolean>>,
 reset:()=>void,
-goTo:NavigateFunction
+goTo:NavigateFunction,
+dispatch:AppDispatch
 )=>{
     const {email,password,username,} =data
     isLoading(true)
@@ -28,11 +32,13 @@ goTo:NavigateFunction
         else{
             
             createUserWithEmailAndPassword(auth,email,password)
-            .then(({user})=>{
-                const userinfo = AddUserToCollection(user.uid,user.email || '','img_link',username)
+            .then(async({user})=>{
+                const imgLink = GenerateAvator(username)
+                const userinfo = await AddUserToCollection(user.uid,user.email || '',imgLink,username)
                 isLoading(false)
                 reset()
                 console.log(userinfo)
+                dispatch(setUser(userinfo))
                 goTo("/dashboard")
             })
             .catch(err=>{
@@ -49,8 +55,8 @@ export const BE_login =(data:{
 },
 isLoading:React.Dispatch<React.SetStateAction<boolean>>,
 reset:()=>void,
-goTo:NavigateFunction
-
+goTo:NavigateFunction,
+dispatch:AppDispatch
 )=>{
     const {password,username,} =data
     isLoading(true)
@@ -62,8 +68,10 @@ goTo:NavigateFunction
         else{
             
             signInWithEmailAndPassword(auth,username,password)
-            .then(userCred=>{
-                console.log(userCred)
+            .then(async({user})=>{
+                const userinfo = await getUserInfo(user.uid)
+                console.log(userinfo)
+                dispatch(setUser(userinfo))
                 isLoading(false)
                 reset()
                 goTo("/dashboard")
@@ -105,8 +113,8 @@ const getUserInfo=async(id:string):Promise<userType>=>{
         const {bio,last_seen,creation_Time,email,username,img,isOnline} =user.data()
         return{
             bio,
-            last_seen,
-            creation_Time,
+            last_seen : convertTime(last_seen.toDate()),
+            creation_Time: convertTime(creation_Time.toDate()),
             email,
             username,
             img,
