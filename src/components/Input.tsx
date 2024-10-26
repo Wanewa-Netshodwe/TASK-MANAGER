@@ -23,7 +23,7 @@ export default function Input({name,iconClass,type,s,onChange,value}: Props) {
         `}
       </style>
        <MyIcon  iconName={iconClass}/> <input style={{fontFamily:'Poppins'}} onChange={onChange} value={value}  className='rounded-tr-md rounded-br-md bg-transparent placeholder:text-[11px]
-        text-[11px] p-[5px] border-l-0 placeholder:text-white border-2 border-gray-600 focus:outline-none w-full  '  type={type} placeholder={`Enter ${name}`}/>
+        text-[11px] p-[5px] border-l-0 text-gray-200 placeholder:text-white border-2 border-gray-600 focus:outline-none w-full  '  type={type} placeholder={`Enter ${name}`}/>
     </div>
     
   )
