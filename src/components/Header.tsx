@@ -46,11 +46,11 @@ export default function Header({}: Props) {
           {
             getCurrentPage() === 'profile' ? (<CustomIcon ping  size='30' iconSize='18' onClick={()=>{handlePageChange('chat')}} iconName={faMessage}></CustomIcon>
           ) :  getCurrentPage() === 'chat' ? <>
-          <Button name='add new list board' s={'bg-purple-600 px-3  text-white  hover:bg-opacity-50 hover:text-grey-50'}></Button> 
+          <Button name='add new list board' s='hidden md:flex  bg-purple-600 px-3  text-white  hover:bg-opacity-50 hover:text-grey-50'></Button> 
           <CustomIcon  className='md:hidden' size='30' iconName={faAdd}></CustomIcon>
           <CustomIcon   size='30' iconSize='18' onClick={()=>{handlePageChange('')}} iconName={faList}></CustomIcon>
           </> : <>
-          <Button name='add new list board' s={'bg-purple-600 px-3  text-white  hover:bg-opacity-50 hover:text-grey-50'}></Button> 
+          <Button name='add new list board' s={'hidden md:flex bg-purple-600 px-3  text-white  hover:bg-opacity-50 hover:text-grey-50'}></Button> 
           <CustomIcon  className='md:hidden' size='30' iconName={faAdd}></CustomIcon>
           <CustomIcon ping  size='30' iconSize='18' onClick={()=>{handlePageChange('chat')}} iconName={faMessage}></CustomIcon>
           <CustomIcon   size='30' iconSize='18' onClick={()=>{handlePageChange('')}} iconName={faList}></CustomIcon>
