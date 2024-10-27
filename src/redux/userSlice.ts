@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 export const  defaultUser={
-    id:'id',
+    id:'',
     bio:"",
     last_seen:"",
     creation_Time:"",

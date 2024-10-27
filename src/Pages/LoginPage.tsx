@@ -1,14 +1,28 @@
-import React,{useState} from 'react'
+import React,{useEffect, useState} from 'react'
 import Form from '../components/Form.tsx'
 import MyIcon from '../components/Icon.tsx'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMessage } from '@fortawesome/free-solid-svg-icons'
+import { setUser } from '../redux/userSlice.ts'
+import { useDispatch } from 'react-redux'
+import { AppDispatch } from '../redux/store.ts'
+import { userType } from '../Types.ts'
+import { useNavigate } from 'react-router-dom'
 type Props = {}
 
 export default function LoginPage() {
+  const dispatch = useDispatch<AppDispatch>()
+  const goto = useNavigate()
   const [signup,setSignup] =useState(true)
+  const currentUser =JSON.parse(localStorage.getItem('user') || '{}')
+  useEffect(()=>{
+    if(currentUser.id){
+       dispatch(setUser(currentUser))
+       goto('/dashboard')
+    }
+  },[])
   return (
-    <div className=' bg-background w-screen h-screen'>
+    <div className=' bg-background w-[100vw] h-[100vh]'>
          <div className='p-[45px] pb-10 flex justify-center gap-2 items-center' >
           <FontAwesomeIcon className='text-[35px]  text-purple-200' icon={faMessage} />
          <h2  style={{fontFamily:'Poppins'}} className=' text-gray-200'>Collab</h2>
