@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 export const  defaultUser={
+    id:'id',
     bio:"",
     last_seen:"",
     creation_Time:"",
@@ -19,8 +20,10 @@ const userSlice = createSlice({
     initialState,
     reducers:{
         setUser:(state,action)=>{
+                const user = action.payload
+                localStorage.setItem('user',JSON.stringify(user))
                 //set loged in user
-                state.currentUser = action.payload
+                state.currentUser = user
         },
         setUsers:(state,action)=>{
             //set all users

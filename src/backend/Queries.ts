@@ -1,8 +1,8 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth"
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth"
 import { auth, db } from "./firebase.ts"
 import { catchError } from "../utils/catcherrors.ts"
 import { NavigateFunction } from "react-router-dom"
-import { doc,setDoc,serverTimestamp, getDoc } from "firebase/firestore"
+import { doc,setDoc,serverTimestamp, getDoc, updateDoc } from "firebase/firestore"
 import { userType } from "../Types.ts"
 import { error } from "../utils/toast.ts"
 import { defaultUser, setUser } from "../redux/userSlice.ts"
@@ -69,6 +69,7 @@ dispatch:AppDispatch
             
             signInWithEmailAndPassword(auth,username,password)
             .then(async({user})=>{
+                await updateUserinfo({id:user.uid , isOnline:true})
                 const userinfo = await getUserInfo(user.uid)
                 console.log(userinfo)
                 dispatch(setUser(userinfo))
@@ -84,6 +85,14 @@ dispatch:AppDispatch
             })
         }
 }
+export const BE_signout= async (dispatch:AppDispatch,goto:NavigateFunction)=>{
+    signOut(auth)
+    const u = JSON.parse(localStorage.getItem('user') || '')
+    u.id ? await updateUserinfo({id:u.id,isOffline:true})  : console.log('user id is empty')
+    localStorage.removeItem('user')
+    dispatch(setUser(defaultUser))
+    goto("/")
+}
 const AddUserToCollection = async(
     id:string,
     email:string,
@@ -92,6 +101,7 @@ const AddUserToCollection = async(
      
 )=>{
     await setDoc(doc(db,USERCOLLECTION,id),{
+            id,
             isOnline:true,
             img,
             username,
@@ -110,8 +120,9 @@ const getUserInfo=async(id:string):Promise<userType>=>{
     const user = await getDoc(userRef)
 
     if(user.exists()){
-        const {bio,last_seen,creation_Time,email,username,img,isOnline} =user.data()
+        const {bio,last_seen,creation_Time,email,username,img,isOnline,id} =user.data()
         return{
+            id,
             bio,
             last_seen : convertTime(last_seen.toDate()),
             creation_Time: convertTime(creation_Time.toDate()),
@@ -125,4 +136,29 @@ const getUserInfo=async(id:string):Promise<userType>=>{
         error('User Not Found')
         return defaultUser
     }
+}
+const updateUserinfo= async (
+    {   id,
+        username,
+        img,
+        isOnline,
+        isOffline,
+    }:{
+        id:string,
+        username?:string,
+        img?:string,
+        isOnline?:boolean,
+        isOffline?:boolean,
+    }
+) =>{
+    const userRef = doc(db, USERCOLLECTION, id);
+    await updateDoc(userRef, {
+        ...(username && {username}),
+        ...(img && {img}),
+        ...(isOnline && {isOnline}),
+        ...(isOffline && {isOnline:false}),
+        last_seen:serverTimestamp(),
+    }
+);
+
 }
