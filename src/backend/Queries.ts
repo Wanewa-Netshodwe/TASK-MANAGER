@@ -2,16 +2,20 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } f
 import { auth, db } from "./firebase.ts"
 import { catchError } from "../utils/catcherrors.ts"
 import { NavigateFunction } from "react-router-dom"
-import { doc,setDoc,serverTimestamp, getDoc, updateDoc } from "firebase/firestore"
-import { userType } from "../Types.ts"
+import { doc,setDoc,serverTimestamp, getDoc, updateDoc, addDoc, collection, query, getDocs, where } from "firebase/firestore"
+import { taskListType, userType } from "../Types.ts"
 import { error } from "../utils/toast.ts"
 import { defaultUser, setUser } from "../redux/userSlice.ts"
 import { AppDispatch } from "../redux/store.ts"
 import { GenerateAvator } from "../utils/GenerateAvator.ts"
 import { convertTime } from "../utils/ConvertTime.ts"
+import { addTaskList, saveTaskListUpdate, setTaskList } from "../redux/TaskListSlice.ts"
 //Collection Names
 const USERCOLLECTION ='users'
-
+const TASKLISTCOLLECTION='tasks'
+export const getUserid=()=>{
+    return JSON.parse(localStorage.getItem('user')|| '{}').id
+}
 export const BE_signup =(data:{
     email:string,
     password:string,
@@ -85,13 +89,15 @@ dispatch:AppDispatch
             })
         }
 }
-export const BE_signout= async (dispatch:AppDispatch,goto:NavigateFunction)=>{
+export const BE_signout= async (dispatch:AppDispatch,goto:NavigateFunction,loading:React.Dispatch<React.SetStateAction<boolean>>)=>{
     signOut(auth)
+    loading(true)
     const u = JSON.parse(localStorage.getItem('user') || '')
     u.id ? await updateUserinfo({id:u.id,isOffline:true})  : console.log('user id is empty')
     localStorage.removeItem('user')
     dispatch(setUser(defaultUser))
     goto("/")
+    loading(false)
 }
 const AddUserToCollection = async(
     id:string,
@@ -162,3 +168,92 @@ const updateUserinfo= async (
 );
 
 }
+
+//-----------------------Tasks-------------------------
+export const BE_addTask = async(
+    dispatch:AppDispatch,
+    setLoading:React.Dispatch<React.SetStateAction<boolean>>
+)=>{
+    setLoading(true)
+    const tasklist:taskListType={
+        title:'Task Title',
+        userId: getUserid()
+    }
+    // Add a new document with a generated id.
+    const docRef = await addDoc(collection(db, TASKLISTCOLLECTION), {
+        title:'Task Title',
+        userId: getUserid()
+    });
+
+    console.log("Document written with ID: ", docRef.id);
+    const taskRef = doc(db, docRef.path);
+    const docSnap = await getDoc(taskRef);
+    
+    if (docSnap.exists()) {
+        const {title,userId} = docSnap.data()
+        const tl:taskListType={
+            id:docRef.id,
+            title : title,
+            userId :userId,
+            editMode:true,
+            tasks:[]
+        }
+        dispatch(addTaskList(tl))
+}
+
+    // await getTasks()
+    setLoading(false)
+}
+
+export const BE_getAllTasks= async(
+    dispatch:AppDispatch,
+    loading:React.Dispatch<React.SetStateAction<boolean>>
+)=>{
+    const tasks = await getTasks()
+    dispatch(setTaskList(tasks))
+    loading(false)
+}
+export const BE_saveTaskList= async(
+    dispatch:AppDispatch,
+    id:string,
+    title:string,
+    loading:React.Dispatch<React.SetStateAction<boolean>>
+)=>{
+    loading(true)
+    const docRef = doc(db, TASKLISTCOLLECTION, id);
+    await updateDoc(docRef,{
+        title:title
+    }) 
+    const tasklist = await getDoc(docRef)
+    dispatch(saveTaskListUpdate(tasklist))
+    loading(false)
+    
+            
+}
+
+const getTasks = async () => {
+      let tasklists:taskListType[] = []
+      const id = getUserid();
+      const q = query(collection(db, TASKLISTCOLLECTION), where("userId", "==", id));
+      console.log('Query object:', q);
+      const tasklistSnapshot = await getDocs(q);
+      if (tasklistSnapshot.empty) {
+        console.log('No matching documents.');
+        return;
+      }
+      tasklistSnapshot.forEach((doc) => {
+        const {title,userId} = doc.data()
+        tasklists.push({
+            title:title,
+            editMode:false,
+            tasks:[],
+            userId:userId
+        })
+        
+      });
+    
+   return tasklists
+  };
+  
+
+

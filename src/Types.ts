@@ -8,3 +8,18 @@ export type  userType={
     img:string,
     isOnline:string
 }
+export type taskListType ={
+    id?:string
+    title:string,
+    userId?:string,
+    editMode?:boolean,
+    tasks?:[]
+}
+export type taskType={
+    id?:string
+    title:string,
+    description:string,
+    taskListid?:string,
+    editMode?:boolean,
+    collapsed?:boolean
+}

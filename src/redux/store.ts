@@ -1,8 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
 import userSlice from './userSlice.ts'
+import TaskListSlicer from './TaskListSlice.ts'
 export const store = configureStore({
     reducer:{
-        user:userSlice
+        user:userSlice,
+        tasklist:TaskListSlicer
     }
 })
 // Infer the `RootState` and `AppDispatch` types from the store itself
