@@ -23,3 +23,4 @@ export type taskType={
     editMode?:boolean,
     collapsed?:boolean
 }
+export type setLoading=React.Dispatch<React.SetStateAction<boolean>>

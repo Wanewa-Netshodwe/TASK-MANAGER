@@ -2,17 +2,18 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } f
 import { auth, db } from "./firebase.ts"
 import { catchError } from "../utils/catcherrors.ts"
 import { NavigateFunction } from "react-router-dom"
-import { doc,setDoc,serverTimestamp, getDoc, updateDoc, addDoc, collection, query, getDocs, where } from "firebase/firestore"
-import { taskListType, userType } from "../Types.ts"
-import { error } from "../utils/toast.ts"
+import { doc,setDoc,serverTimestamp, getDoc, updateDoc, addDoc, collection, query, getDocs, where, deleteDoc } from "firebase/firestore"
+import { setLoading, taskListType, taskType, userType } from "../Types.ts"
+import { error, success } from "../utils/toast.ts"
 import { defaultUser, setUser } from "../redux/userSlice.ts"
 import { AppDispatch } from "../redux/store.ts"
 import { GenerateAvator } from "../utils/GenerateAvator.ts"
 import { convertTime } from "../utils/ConvertTime.ts"
-import { addTaskList, saveTaskListUpdate, setTaskList } from "../redux/TaskListSlice.ts"
+import { addTaskList, deleteTaskList, saveTaskListUpdate, setTaskList } from "../redux/TaskListSlice.ts"
 //Collection Names
 const USERCOLLECTION ='users'
 const TASKLISTCOLLECTION='tasks'
+const TASKCOLLECTION = 'tasks'
 export const getUserid=()=>{
     return JSON.parse(localStorage.getItem('user')|| '{}').id
 }
@@ -21,7 +22,7 @@ export const BE_signup =(data:{
     password:string,
     username:string
 },
-isLoading:React.Dispatch<React.SetStateAction<boolean>>,
+isLoading:setLoading,
 reset:()=>void,
 goTo:NavigateFunction,
 dispatch:AppDispatch
@@ -57,7 +58,7 @@ export const BE_login =(data:{
     password:string,
     username:string
 },
-isLoading:React.Dispatch<React.SetStateAction<boolean>>,
+isLoading:setLoading,
 reset:()=>void,
 goTo:NavigateFunction,
 dispatch:AppDispatch
@@ -89,7 +90,7 @@ dispatch:AppDispatch
             })
         }
 }
-export const BE_signout= async (dispatch:AppDispatch,goto:NavigateFunction,loading:React.Dispatch<React.SetStateAction<boolean>>)=>{
+export const BE_signout= async (dispatch:AppDispatch,goto:NavigateFunction,loading:setLoading)=>{
     signOut(auth)
     loading(true)
     const u = JSON.parse(localStorage.getItem('user') || '')
@@ -172,10 +173,11 @@ const updateUserinfo= async (
 //-----------------------Tasks-------------------------
 export const BE_addTask = async(
     dispatch:AppDispatch,
-    setLoading:React.Dispatch<React.SetStateAction<boolean>>
+    setLoading:setLoading
 )=>{
     setLoading(true)
     const tasklist:taskListType={
+        
         title:'Task Title',
         userId: getUserid()
     }
@@ -186,6 +188,9 @@ export const BE_addTask = async(
     });
 
     console.log("Document written with ID: ", docRef.id);
+    await updateDoc(docRef,{
+        id:docRef.id
+    })
     const taskRef = doc(db, docRef.path);
     const docSnap = await getDoc(taskRef);
     
@@ -207,7 +212,7 @@ export const BE_addTask = async(
 
 export const BE_getAllTasks= async(
     dispatch:AppDispatch,
-    loading:React.Dispatch<React.SetStateAction<boolean>>
+    loading:setLoading
 )=>{
     const tasks = await getTasks()
     dispatch(setTaskList(tasks))
@@ -217,7 +222,7 @@ export const BE_saveTaskList= async(
     dispatch:AppDispatch,
     id:string,
     title:string,
-    loading:React.Dispatch<React.SetStateAction<boolean>>
+    loading:setLoading
 )=>{
     loading(true)
     const docRef = doc(db, TASKLISTCOLLECTION, id);
@@ -231,6 +236,50 @@ export const BE_saveTaskList= async(
             
 }
 
+export const BE_deleteTaskList = async (tasklist: taskListType, dispatch: AppDispatch, loading: setLoading) => {
+    const { id, tasks } = tasklist;
+    loading(true);
+    
+    if (tasks) {
+      if (tasks.length > 0) {
+        for (let i = 0; i < tasks.length; i++) {
+          await BE_deleteTask(id, tasks[i]);
+        }
+      }
+    }
+  
+    if (id) {
+      const tasklistCollectionRef = collection(db, TASKLISTCOLLECTION);
+      const tasklistDocRef = doc(tasklistCollectionRef, id); // Fix: Separate collection and doc reference
+      await deleteDoc(tasklistDocRef);
+      const tasklistDoc = await getDoc(tasklistDocRef);
+      
+      if (!tasklistDoc.exists()) {
+        dispatch(deleteTaskList(id))
+        // success('TaskList Deleted');
+        loading(false);
+      } else {
+        error('Error deleting TaskList');
+      }
+    }
+  };
+  
+export const BE_deleteTask =async(listid,task:taskType)=>{
+    
+    if (task.id){
+        const taskref =  doc(collection(db,TASKLISTCOLLECTION,listid,TASKCOLLECTION,task.id))
+        await deleteDoc(taskref)
+        const taskdoc = await getDoc(taskref)
+        if (!taskdoc.exists()){
+            console.log('task deleted')
+        }
+        else{
+            error("Error deleting Task")
+        }
+    }
+    
+     
+}
 const getTasks = async () => {
       let tasklists:taskListType[] = []
       const id = getUserid();
@@ -242,8 +291,9 @@ const getTasks = async () => {
         return;
       }
       tasklistSnapshot.forEach((doc) => {
-        const {title,userId} = doc.data()
+        const {title,userId,id} = doc.data()
         tasklists.push({
+            id:id,
             title:title,
             editMode:false,
             tasks:[],

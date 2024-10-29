@@ -2,11 +2,13 @@ import { createSlice } from "@reduxjs/toolkit";
 import { taskListType, taskType } from "../Types";
 
 export const defaultTask: taskType = {
+    id:'',
     title: 'dummy title',
     description: 'some text'
 };
 
 export const defaultTaskList: taskListType = {
+    id:'i',
     title: 'Task Title'
 };
 
@@ -23,14 +25,12 @@ const TaskListSlice = createSlice({
     initialState,
     reducers: {
         setTaskList: (state, action) => {
-            console.log("Reducer setTaskList called with:", action.payload);
             if (!state.currentTaskList) {
                 state.currentTaskList = [];
             }
             state.currentTaskList = action.payload;
         },
         addTaskList: (state, action) => {
-            console.log("Reducer addTaskList called with:", action.payload);
             if (!state.currentTaskList) {
                 state.currentTaskList = [];
             }
@@ -47,11 +47,23 @@ const TaskListSlice = createSlice({
                 return t
             })
         },
-        switchToEditMode:(state)=>{
+        switchToTastListEditMode:(state,action)=>{
+            const {id,value} = action.payload
+            state.currentTaskList = state.currentTaskList.map(tl=>{
+                if (tl.id === id){
+                    tl.editMode = value 
+                }
+                return tl
+            })
             
+        },
+        deleteTaskList:(state,action)=>{
+            const id = action.payload
+            state.currentTaskList = state.currentTaskList.filter(tl => (tl.id !== id))
+
         }
     }
 });
 
-export const { setTaskList, addTaskList ,saveTaskListUpdate } = TaskListSlice.actions;
+export const { setTaskList, addTaskList ,saveTaskListUpdate,switchToTastListEditMode,deleteTaskList} = TaskListSlice.actions;
 export default TaskListSlice.reducer;

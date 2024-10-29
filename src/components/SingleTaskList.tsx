@@ -4,8 +4,10 @@ import React, { forwardRef, useState } from 'react'
 import Tasks from './Tasks.tsx'
 import { taskListType } from '../Types.ts'
 import Spinner from './Spinner.tsx'
-import { BE_saveTaskList } from '../backend/Queries.ts'
+import { BE_deleteTaskList, BE_saveTaskList } from '../backend/Queries.ts'
 import { useDispatch } from 'react-redux'
+import { AppDispatch } from '../redux/store.ts'
+import { switchToTastListEditMode } from '../redux/TaskListSlice.ts'
 
 type TaskListProps = {
   tasklist?:taskListType
@@ -13,11 +15,20 @@ type TaskListProps = {
 
 const  SingleTaskList = forwardRef(({tasklist}: TaskListProps,ref:React.LegacyRef<HTMLDivElement>) => {
   const dispatch = useDispatch()
-  const switchToEditMode = ()=>{
-
+  const d = useDispatch<AppDispatch>()
+  const switchToEditMode = (id,ed)=>{
+      console.log('edit mode clicked')
+        const taskinfo = {
+          id : id,
+          value:ed = !ed
+        }
+          console.log(taskinfo.value)
+          d(switchToTastListEditMode(taskinfo))
     
   }
   const[saveLoading,setsaveLoading] = useState(false)
+  const[deleteLoading,setdeleteLoading] = useState(false)
+  const[iseditMode,setEditmode] = useState(false)
   const handleSaveTaskListTitle =() =>{
     console.log('id is :' , tasklist?.id)
     if(tasklist?.id){
@@ -26,8 +37,10 @@ const  SingleTaskList = forwardRef(({tasklist}: TaskListProps,ref:React.LegacyRe
     else{
       console.log('id is null')
     }
-    
-
+  }
+  const handleDelete=()=>{
+    if (tasklist)
+    BE_deleteTaskList(tasklist,dispatch,setdeleteLoading)
   }
   
   const[homeTitle,sethomeTitle] = useState(tasklist?.title)
@@ -51,9 +64,10 @@ const  SingleTaskList = forwardRef(({tasklist}: TaskListProps,ref:React.LegacyRe
                   
                 
                 <div className="flex gap-1 justify-end items-center">
-                  {saveLoading ?  <Spinner/> : <FontAwesomeIcon onClick={()=>{tasklist?.editMode ? handleSaveTaskListTitle() : switchToEditMode() }} className=' w-3 text-[#c6c3c9] h-3 rounded-full p-2 hover:bg-purple-800' icon={tasklist?.editMode ? faSave : faPen}></FontAwesomeIcon>
+                  {saveLoading ?  <Spinner/> : <FontAwesomeIcon onClick={()=>{tasklist?.editMode ? handleSaveTaskListTitle() : switchToEditMode(tasklist?.id,iseditMode)}} className=' w-3 text-[#c6c3c9] h-3 rounded-full p-2 hover:bg-purple-800' icon={tasklist?.editMode ? faSave : faPen}></FontAwesomeIcon>
                  }
-                <FontAwesomeIcon className=' w-3 text-[#c6c3c9] h-3 rounded-full p-2 hover:bg-purple-800' icon={faTrash}></FontAwesomeIcon>
+                 {deleteLoading ? <Spinner/> : <FontAwesomeIcon  onClick={()=>{handleDelete()}} className=' w-3 text-[#c6c3c9] h-3 rounded-full p-2 hover:bg-purple-800' icon={faTrash}></FontAwesomeIcon> }
+                
                 <FontAwesomeIcon className=' w-4 text-[#c6c3c9] h-4 rounded-full p-2 hover:bg-purple-800' icon={faCaretDown}></FontAwesomeIcon>
                 </div>
             </div>
