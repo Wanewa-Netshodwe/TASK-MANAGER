@@ -100,6 +100,29 @@ export const BE_signout= async (dispatch:AppDispatch,goto:NavigateFunction,loadi
     goto("/")
     loading(false)
 }
+export const BE_updateProfile= async(
+  dispatch:AppDispatch,
+  loading:setLoading,
+  goto:NavigateFunction,
+  username:string,
+  email:string,
+  bio:string,
+  pic:string,
+  id:string
+)=>{
+  loading(true)
+  const userRef = doc(db,USERCOLLECTION,id)
+  await updateDoc(userRef,{
+    username:username,
+    email:email,
+    bio:bio,
+    img:pic
+  })
+  const user = await getUserInfo(id)
+  dispatch(setUser(user))
+  loading(false)
+  goto('/')
+}
 const AddUserToCollection = async(
     id:string,
     email:string,

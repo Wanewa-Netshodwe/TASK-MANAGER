@@ -14,7 +14,7 @@ export const catchError =(code?:string)=>{
         error('Password must Have 1 Special character and 1 Lowecase and UpperCase Character')
     }
     else if (code === 'auth/invalid-credential'){
-        error('Wrong Password')
+        error('invalid credentials')
     }
     else if (code === 'auth/user-not-found'){
         error('Account does not Exist')
