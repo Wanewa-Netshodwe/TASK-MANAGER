@@ -40,7 +40,7 @@ export default function Form({login,s}:Props) {
       BE_login(data,setSignupLoading,resetForm,goTo,dispatch)
       }
   return (
-    <div className={`mx-auto w-full ${s}  bg-formbg
+    <div className={`mx-auto w-full ${s}  bg-secondary
     p-5 md:w-[330px] md:rounded-sm
     
     `} >
@@ -49,7 +49,7 @@ export default function Form({login,s}:Props) {
       <Input value={username} onChange={(e)=>{setUsername(e.target.value)}} iconClass={faUser} name='Username'></Input>
       <label style={{fontFamily:'Poppins'}}  className='text-[10px] ml-2  text-gray-200'>Password</label>
       <Input value={password} onChange={(e)=>{setPassword(e.target.value)}} iconClass={faLock} s='mb-5'  type='password' name='Password '></Input>
-      {login ? <Button s='flex'  loading={signupLoading} onClick={()=>{handleLogin()}} name='Login'></Button> : <Button s='flex' onClick={()=>{handleSignup()}} loading={signupLoading} name='Register '></Button>}
+      {login ? <Button s='flex bg-purple-600 hover:bg-opacity-50'  loading={signupLoading} onClick={()=>{handleLogin()}} name='Login'></Button> : <Button s='flex bg-purple-600 hover:bg-opacity-50' onClick={()=>{handleSignup()}} loading={signupLoading} name='Register '></Button>}
 
     </div>
   )

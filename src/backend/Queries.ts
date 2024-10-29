@@ -9,7 +9,7 @@ import { defaultUser, setUser } from "../redux/userSlice.ts"
 import { AppDispatch } from "../redux/store.ts"
 import { GenerateAvator } from "../utils/GenerateAvator.ts"
 import { convertTime } from "../utils/ConvertTime.ts"
-import { addTaskList, deleteTaskList, saveTaskListUpdate, setTaskList } from "../redux/TaskListSlice.ts"
+import { addTask, addTaskList, defaultTask, deleteTask, deleteTaskList, saveTask, saveTaskListUpdate, setTaskList } from "../redux/TaskListSlice.ts"
 //Collection Names
 const USERCOLLECTION ='users'
 const TASKLISTCOLLECTION='tasks'
@@ -170,8 +170,8 @@ const updateUserinfo= async (
 
 }
 
-//-----------------------Tasks-------------------------
-export const BE_addTask = async(
+//-----------------------TasksList-------------------------
+export const BE_addTaskList = async(
     dispatch:AppDispatch,
     setLoading:setLoading
 )=>{
@@ -210,11 +210,12 @@ export const BE_addTask = async(
     setLoading(false)
 }
 
-export const BE_getAllTasks= async(
+export const BE_getAllTasksList= async(
     dispatch:AppDispatch,
     loading:setLoading
 )=>{
-    const tasks = await getTasks()
+    const tasks = await getTaskLists()
+    console.log('return of get all task: ',tasks)
     dispatch(setTaskList(tasks))
     loading(false)
 }
@@ -243,7 +244,7 @@ export const BE_deleteTaskList = async (tasklist: taskListType, dispatch: AppDis
     if (tasks) {
       if (tasks.length > 0) {
         for (let i = 0; i < tasks.length; i++) {
-          await BE_deleteTask(id, tasks[i]);
+          await BE_deleteAllTask(id);
         }
       }
     }
@@ -264,46 +265,208 @@ export const BE_deleteTaskList = async (tasklist: taskListType, dispatch: AppDis
     }
   };
   
-export const BE_deleteTask =async(listid,task:taskType)=>{
-    
-    if (task.id){
-        const taskref =  doc(collection(db,TASKLISTCOLLECTION,listid,TASKCOLLECTION,task.id))
-        await deleteDoc(taskref)
-        const taskdoc = await getDoc(taskref)
-        if (!taskdoc.exists()){
-            console.log('task deleted')
+  export const BE_deleteAllTask = async (listid) => {
+    try {
+      const tasksCollectionRef = collection(db, TASKLISTCOLLECTION, listid, TASKCOLLECTION); // Reference to the tasks subcollection
+      const querySnapshot = await getDocs(tasksCollectionRef);
+  
+      if (querySnapshot.empty) {
+        console.log('No tasks to delete.');
+        return;
+      }
+  
+      const deletePromises = querySnapshot.docs.map((doc) => {
+        const taskDocRef = doc.ref;
+        return deleteDoc(taskDocRef);
+      });
+  
+      await Promise.all(deletePromises);
+  
+      console.log('All tasks deleted successfully.');
+    } catch (error) {
+      console.error('Error deleting tasks:', error);
+    }
+  };
+
+//---------------------Task------------------------------
+
+export const BE_addTask = async(
+    dispatch:AppDispatch,
+    loading:setLoading,
+    listid:string,
+)=>{
+    loading(true)
+    const taskListDocRef = doc(db, TASKLISTCOLLECTION, listid);
+    const tasksCollectionRef = collection(taskListDocRef, TASKCOLLECTION);
+    const newTaskDocRef = doc(tasksCollectionRef);
+    const task:taskType={
+        title:defaultTask.title,
+        description:defaultTask.description,
+        taskListid :listid,
+        editMode:true,
+        collapsed:true,
+        id:newTaskDocRef.id
+    }
+    await setDoc(newTaskDocRef, task);
+    const all_Tasks =  await getTasks(listid,newTaskDocRef.id)
+    dispatch(addTask(all_Tasks))
+    loading(false)
+
+
+}
+
+export const BE_saveTask= async(
+    dispatch:AppDispatch,
+    loading:setLoading,
+    taskTitle:string,
+    taskDescription:string,
+    listid?:string,
+    taskid?:string,
+)=>{
+    loading(true)
+    if(listid && taskid){
+        const taskListDocRef = doc(db, TASKLISTCOLLECTION, listid);
+        const tasksCollectionRef = collection(taskListDocRef, TASKCOLLECTION);
+        const taskDocRef = doc(tasksCollectionRef, taskid);
+        await updateDoc(taskDocRef,{
+            title:taskTitle,
+            description:taskDescription
+        })
+        loading(false)
+        const payload ={
+            listid: listid,
+            taskid:taskid,
+            title:taskTitle,
+            description:taskDescription,
         }
-        else{
-            error("Error deleting Task")
-        }
+        dispatch(saveTask(payload))
+        
+        
+
     }
     
-     
+    
+    
 }
-const getTasks = async () => {
-      let tasklists:taskListType[] = []
-      const id = getUserid();
-      const q = query(collection(db, TASKLISTCOLLECTION), where("userId", "==", id));
-      console.log('Query object:', q);
-      const tasklistSnapshot = await getDocs(q);
+export const BE_deleteTask =async(
+    dispatch:AppDispatch,
+    loading:setLoading,
+    task:taskType
+)=>{
+    loading(true)
+    if (task.taskListid && task.id){
+    const taskListDocRef = doc(db, TASKLISTCOLLECTION, task.taskListid); // Reference to the specific task list
+    const tasksCollectionRef = collection(taskListDocRef, TASKCOLLECTION);
+    const taskDocRef = doc(tasksCollectionRef, task.id);
+    await deleteDoc(taskDocRef)
+    const taskDoc = await getDoc(taskDocRef);
+      
+      if (!taskDoc.exists()) {
+        dispatch(deleteTask(task))
+        // success('TaskList Deleted');
+        loading(false);
+      } else {
+        error('Error deleting TaskList');
+      }
+
+
+    }
+    
+
+}
+const gt = async (listid) => {
+    const taskListDocRef = doc(db, TASKLISTCOLLECTION, listid); // Reference to the specific task list
+    const tasksCollectionRef = collection(taskListDocRef, TASKCOLLECTION); // Reference to the tasks subcollection
+  
+    let tasks:taskType[] = []; // Ensure tasks is a properly initialized array
+  
+    try {
+      const querySnapshot = await getDocs(tasksCollectionRef);
+  
+      if (querySnapshot.empty) {
+        return [];
+      }
+  
+      querySnapshot.forEach((doc) => {
+        const { taskListid, description, title, id } = doc.data();
+        tasks.push({
+          taskListid: taskListid,
+          description: description,
+          title: title,
+          collapsed: false,
+          editMode: false,
+          id: id,
+        });
+      });
+    } catch (error) {
+      console.error("Error getting tasks:", error);
+    }
+  
+    return tasks;
+  };
+
+const getTaskLists = async () => {
+    let tasklists: taskListType[] = [];
+    const userId = getUserid();
+    const q = query(collection(db, TASKLISTCOLLECTION), where("userId", "==", userId));
+    console.log('Query object:', q);
+  
+    const tasklistSnapshot = await getDocs(q);
+  
+    if (tasklistSnapshot.empty) {
+      console.log('No matching documents.');
+      return tasklists;
+    }
+  
+    const promises = tasklistSnapshot.docs.map(async (doc) => {
+      const { title, userId, id } = doc.data();
+      const tasks = await gt(id); // Fetch tasks for each task list
+      tasklists.push({
+        id: id,
+        title: title,
+        editMode: false,
+        tasks: tasks, // Assign the fetched tasks to the task list
+        userId: userId
+      });
+    });
+  
+    // Wait for all the async operations to complete
+    await Promise.all(promises);
+  
+    return tasklists;
+  };
+  
+
+
+const getTasks = async(listid,id)=>{
+    let tasks:taskType[] = []
+    console.log('list id :',listid)
+    const taskListDocRef = doc(db, TASKLISTCOLLECTION, listid); // Reference to the specific task list
+    const tasksCollectionRef = collection(taskListDocRef, TASKLISTCOLLECTION); // Reference to the tasks subcollection
+    
+    // Querying the subcollection
+    const q = query(tasksCollectionRef, where("id", "==", id));
+    const tasklistSnapshot = await getDocs(q);
       if (tasklistSnapshot.empty) {
         console.log('No matching documents.');
         return;
       }
       tasklistSnapshot.forEach((doc) => {
-        const {title,userId,id} = doc.data()
-        tasklists.push({
+        const {title,taskListid,description,editMode,collapsed,id} = doc.data()
+        tasks.push({
             id:id,
             title:title,
-            editMode:false,
-            tasks:[],
-            userId:userId
+            editMode:true,
+            description:description,
+            collapsed:true,
+            taskListid:taskListid
         })
         
       });
+      
     
-   return tasklists
-  };
+   return tasks
+}
   
 
 

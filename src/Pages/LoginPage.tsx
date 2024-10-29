@@ -22,7 +22,7 @@ export default function LoginPage() {
     }
   },[])
   return (
-    <div className=' bg-background w-[100vw] h-[100vh]'>
+    <div className=' bg-primary w-[100vw] h-[100vh]'>
          <div className='p-[45px] pb-10 flex justify-center gap-2 items-center' >
           <FontAwesomeIcon className='text-[35px]  text-purple-200' icon={faMessage} />
          <h2  style={{fontFamily:'Poppins'}} className=' text-gray-200'>Collab</h2>

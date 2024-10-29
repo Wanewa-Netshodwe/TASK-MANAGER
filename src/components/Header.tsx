@@ -9,7 +9,7 @@ import {useDispatch, useSelector} from 'react-redux'
 import { RootState } from '../redux/store.ts'
 import { Link, useNavigate } from 'react-router-dom'
 import MyIcon from './Icon.tsx'
-import { BE_addTask, BE_signout } from '../backend/Queries.ts'
+import { BE_addTask, BE_addTaskList, BE_signout } from '../backend/Queries.ts'
 import Spinner from './Spinner.tsx'
 type Props = {}
 
@@ -28,7 +28,7 @@ export default function Header({}: Props) {
   const [newTaskloading,setnewTaskloading] = useState(false)
   const [signoutloading,setsignoutloading] = useState(false)
   const handleAddTask = ()=>{
-    BE_addTask(dispatch,setnewTaskloading)
+    BE_addTaskList(dispatch,setnewTaskloading)
   }
   const dispatch = useDispatch()
   const goto = useNavigate()
@@ -42,10 +42,10 @@ export default function Header({}: Props) {
     }
   },[goto,currentUser])
   return (
-    <div className=' bg-formbg flex items-center z-30 py-2 justify-between md:py-2 flex-row '>
-        <div className='bg-transparent p-3 md:p-2 flex gap-2 items-center ' onClick={()=>{handlePageChange('')}}>
-          <FontAwesomeIcon className='text-[25px]  text-purple-200 cursor-pointer' icon={faMessage} />
-         <h2  style={{fontFamily:'Poppins'}} className=' text-gray-200'>Collab</h2>
+    <div className=' bg-secondary flex items-center z-30  justify-between md:py-2 flex-row '>
+        <div className='bg-transparent p-3 md:px-6 flex gap-4 items-center ' onClick={()=>{handlePageChange('')}}>
+          <FontAwesomeIcon className='text-[35px]  text-purple-200 cursor-pointer' icon={faMessage} />
+         <h2  style={{fontFamily:'Poppins'}} className=' text-gray-200 text-[25px]'>Collab</h2>
          </div>
          <div className="flex px-3 gap-3 justify-center items-center">
           {
@@ -55,10 +55,10 @@ export default function Header({}: Props) {
           <CustomIcon  className='md:hidden' size='30' iconName={faAdd}></CustomIcon>
           <CustomIcon   size='30' iconSize='18' onClick={()=>{handlePageChange('')}} iconName={faList}></CustomIcon>
           </> : <>
-          <Button name='add new list board' loading={newTaskloading} onClick={()=>{handleAddTask()}} s={'hidden md:flex bg-purple-600 px-3  text-white  hover:bg-opacity-50 hover:text-grey-50'}></Button> 
-          <CustomIcon  className='md:hidden' size='30' iconName={faAdd}></CustomIcon>
-          <CustomIcon ping  size='30' iconSize='18' onClick={()=>{handlePageChange('chat')}} iconName={faMessage}></CustomIcon>
-          <CustomIcon   size='30' iconSize='18' onClick={()=>{handlePageChange('')}} iconName={faList}></CustomIcon>
+          <Button name='add new list board' loading={newTaskloading} onClick={()=>{handleAddTask()}} s={'hidden md:flex bg-purple-600 px-3   text-white  hover:bg-opacity-50 hover:text-grey-50'}></Button> 
+          <CustomIcon  className='md:hidden' size='50' iconName={faAdd}></CustomIcon>
+          <CustomIcon ping   className=' size-8' iconSize='28' onClick={()=>{handlePageChange('chat')}} iconName={faMessage}></CustomIcon>
+          <CustomIcon   size='30' iconSize='28' onClick={()=>{handlePageChange('')}} iconName={faList}></CustomIcon>
           </>
 
           }
@@ -66,8 +66,8 @@ export default function Header({}: Props) {
           
           <div className="group relative  hover:cursor-pointer">
           <Userheaderprofile user={currentUser}/>
-          <div className='hidden group-hover:block absolute pt-5 w-[150px]  '>
-              <ul className='bg-purple-500 rounded-sm shadow-sm shadow-gray-700'>
+          <div className='hidden group-hover:block absolute pt-5 w-fit  '>
+              <ul className='bg-secondary rounded-sm shadow-sm shadow-gray-700'>
             <p style={{fontFamily:'Poppins'}} onClick={()=>{handlePageChange('profile')}} className='  px-3 flex justify-start gap-2 py-2 items-center text-white text-[15px] hover:bg-purple-600 '><FontAwesomeIcon className='text-[12px]' icon={faUser} />Profile</p>
             <p onClick={()=>{handleSignOut()}} style={{fontFamily:'Poppins'}} className='px-3 flex justify-start gap-2 py-2 items-center text-white text-[15px] hover:bg-purple-600 ' > <FontAwesomeIcon className='text-[12px]' icon={faDoorOpen} />  Log Out {signoutloading ? <Spinner/> : null} </p>
           

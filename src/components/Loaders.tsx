@@ -5,7 +5,7 @@ type Props = {}
 export default function SingleLoaderList() {
     return (
       <div className='p-6 flex flex-wrap justify-center gap-10'>
-        {[1, 2, 3, 4, 5, ].map(l => (
+        {[1, 2, 3, 4, 5,6,7,8,9,1,2,2 ].map(l => (
           <SingleLoader key={l} />
         ))}
       </div>

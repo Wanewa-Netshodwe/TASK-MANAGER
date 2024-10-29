@@ -12,13 +12,17 @@ module.exports = {
     
     extend: {
       colors:{
-        formbg:'#1c1c1c',
-        background:'#212121',
-        btncolor:'#733dd9'
+        secondary:'#383838',
+        primary:'#333333',
+        tertiary:'#2824f2'
 
       }
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addBase }) 
+    { addBase({ '*': { margin: '0', padding: '0', } }); 
+  }
+  ],
 }
 

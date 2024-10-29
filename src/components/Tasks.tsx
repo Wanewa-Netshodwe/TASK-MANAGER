@@ -1,12 +1,17 @@
 import React from 'react'
 import Task from './Task.tsx'
+import { taskListType, taskType } from '../Types.ts'
+import FlipMove from 'react-flip-move'
 
-type Props = {}
+type Props = {
+  tasklist:taskListType
+}
 
-export default function Tasks({}: Props) {
+export default function Tasks({tasklist}: Props) {
   return (
-    <div className='p-2 '>
-        <Task></Task>
-    </div>
+    <FlipMove className='p-2 relative'>
+        {tasklist.tasks?.map( t =><Task task={t} key={t.id} ></Task>)}
+        
+    </FlipMove>
   )
 }
