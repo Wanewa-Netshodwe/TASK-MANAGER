@@ -176,12 +176,7 @@ export const BE_addTaskList = async(
     setLoading:setLoading
 )=>{
     setLoading(true)
-    const tasklist:taskListType={
-        
-        title:'Task Title',
-        userId: getUserid()
-    }
-    // Add a new document with a generated id.
+  
     const docRef = await addDoc(collection(db, TASKLISTCOLLECTION), {
         title:'Task Title',
         userId: getUserid()
@@ -251,7 +246,7 @@ export const BE_deleteTaskList = async (tasklist: taskListType, dispatch: AppDis
   
     if (id) {
       const tasklistCollectionRef = collection(db, TASKLISTCOLLECTION);
-      const tasklistDocRef = doc(tasklistCollectionRef, id); // Fix: Separate collection and doc reference
+      const tasklistDocRef = doc(tasklistCollectionRef, id); 
       await deleteDoc(tasklistDocRef);
       const tasklistDoc = await getDoc(tasklistDocRef);
       
@@ -355,7 +350,7 @@ export const BE_deleteTask =async(
 )=>{
     loading(true)
     if (task.taskListid && task.id){
-    const taskListDocRef = doc(db, TASKLISTCOLLECTION, task.taskListid); // Reference to the specific task list
+    const taskListDocRef = doc(db, TASKLISTCOLLECTION, task.taskListid); 
     const tasksCollectionRef = collection(taskListDocRef, TASKCOLLECTION);
     const taskDocRef = doc(tasksCollectionRef, task.id);
     await deleteDoc(taskDocRef)
@@ -363,7 +358,7 @@ export const BE_deleteTask =async(
       
       if (!taskDoc.exists()) {
         dispatch(deleteTask(task))
-        // success('TaskList Deleted');
+       
         loading(false);
       } else {
         error('Error deleting TaskList');
@@ -375,10 +370,10 @@ export const BE_deleteTask =async(
 
 }
 const gt = async (listid) => {
-    const taskListDocRef = doc(db, TASKLISTCOLLECTION, listid); // Reference to the specific task list
-    const tasksCollectionRef = collection(taskListDocRef, TASKCOLLECTION); // Reference to the tasks subcollection
+    const taskListDocRef = doc(db, TASKLISTCOLLECTION, listid);
+    const tasksCollectionRef = collection(taskListDocRef, TASKCOLLECTION);
   
-    let tasks:taskType[] = []; // Ensure tasks is a properly initialized array
+    let tasks:taskType[] = []; 
   
     try {
       const querySnapshot = await getDocs(tasksCollectionRef);
@@ -420,17 +415,17 @@ const getTaskLists = async () => {
   
     const promises = tasklistSnapshot.docs.map(async (doc) => {
       const { title, userId, id } = doc.data();
-      const tasks = await gt(id); // Fetch tasks for each task list
+      const tasks = await gt(id); 
       tasklists.push({
         id: id,
         title: title,
         editMode: false,
-        tasks: tasks, // Assign the fetched tasks to the task list
+        tasks: tasks,
         userId: userId
       });
     });
   
-    // Wait for all the async operations to complete
+    
     await Promise.all(promises);
   
     return tasklists;
@@ -441,10 +436,9 @@ const getTaskLists = async () => {
 const getTasks = async(listid,id)=>{
     let tasks:taskType[] = []
     console.log('list id :',listid)
-    const taskListDocRef = doc(db, TASKLISTCOLLECTION, listid); // Reference to the specific task list
-    const tasksCollectionRef = collection(taskListDocRef, TASKLISTCOLLECTION); // Reference to the tasks subcollection
+    const taskListDocRef = doc(db, TASKLISTCOLLECTION, listid); 
+    const tasksCollectionRef = collection(taskListDocRef, TASKLISTCOLLECTION); 
     
-    // Querying the subcollection
     const q = query(tasksCollectionRef, where("id", "==", id));
     const tasklistSnapshot = await getDocs(q);
       if (tasklistSnapshot.empty) {
@@ -452,7 +446,7 @@ const getTasks = async(listid,id)=>{
         return;
       }
       tasklistSnapshot.forEach((doc) => {
-        const {title,taskListid,description,editMode,collapsed,id} = doc.data()
+        const {title,taskListid,description,id} = doc.data()
         tasks.push({
             id:id,
             title:title,
