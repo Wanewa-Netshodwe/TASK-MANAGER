@@ -13,6 +13,8 @@ export type taskListType ={
     title:string,
     userId?:string,
     editMode?:boolean,
+    completed?:boolean,
+    deadline?:string
     tasks?:taskType[]
 }
 export type taskType={

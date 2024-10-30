@@ -8,8 +8,8 @@ import { error, success } from "../utils/toast.ts"
 import { defaultUser, setUser } from "../redux/userSlice.ts"
 import { AppDispatch } from "../redux/store.ts"
 import { GenerateAvator } from "../utils/GenerateAvator.ts"
-import { convertTime } from "../utils/ConvertTime.ts"
-import { addTask, addTaskList, defaultTask, deleteTask, deleteTaskList, saveTask, saveTaskListUpdate, setTaskList } from "../redux/TaskListSlice.ts"
+import { convertT, convertTime } from "../utils/ConvertTime.ts"
+import { addTask, addTaskList, defaultTask, deleteTask, deleteTaskList, saveTask, saveTaskListUpdate, setcompleted, setdeadLine, setTaskList } from "../redux/TaskListSlice.ts"
 //Collection Names
 const USERCOLLECTION ='users'
 const TASKLISTCOLLECTION='tasks'
@@ -202,7 +202,9 @@ export const BE_addTaskList = async(
   
     const docRef = await addDoc(collection(db, TASKLISTCOLLECTION), {
         title:'Task Title',
-        userId: getUserid()
+        userId: getUserid(),
+        deadline:"",
+        completed:false
     });
 
     console.log("Document written with ID: ", docRef.id);
@@ -226,6 +228,31 @@ export const BE_addTaskList = async(
 
     // await getTasks()
     setLoading(false)
+}
+export const BE_completed = async(dispatch,id,goto)=>{
+  console.log(id)
+  const dref = doc(db,TASKCOLLECTION,id)
+  await updateDoc(dref,{
+    completed:true
+  })
+  dispatch(setcompleted(id))
+  goto('/')
+
+}
+export const BE_setdeadLine = async(dispatch,id,goto,date,loading)=>{
+  loading(true)
+  const dref = doc(db,TASKCOLLECTION,id)
+  console.log(date)
+  await updateDoc(dref,{
+    deadline : date
+  })
+  const obj ={
+    id:id,
+    deadline:convertT(date)
+  }
+  loading(false)
+  dispatch(setdeadLine(obj))
+  goto('/')
 }
 
 export const BE_getAllTasksList= async(
@@ -437,14 +464,16 @@ const getTaskLists = async () => {
     }
   
     const promises = tasklistSnapshot.docs.map(async (doc) => {
-      const { title, userId, id } = doc.data();
+      const { title, userId, id,completed ,deadline} = doc.data();
       const tasks = await gt(id); 
       tasklists.push({
         id: id,
         title: title,
         editMode: false,
         tasks: tasks,
-        userId: userId
+        userId: userId,
+        completed:completed,
+        deadline: deadline ? convertTime(deadline.toDate()) : ''
       });
     });
   

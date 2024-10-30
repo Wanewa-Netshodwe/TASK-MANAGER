@@ -141,11 +141,31 @@ const TaskListSlice = createSlice({
                 }
                 return tl
             })
+        },
+        setdeadLine:(state,action)=>{
+            const {id,deadline} = action.payload
+            state.currentTaskList = state.currentTaskList.map(t=>{
+                if(t.id === id){
+                    t.deadline =deadline    
+                }
+                return t
+            })
+
+        },
+        setcompleted:(state,action)=>{
+            const {id} = action.payload
+            state.currentTaskList = state.currentTaskList.map(t=>{
+                if(t.id === id){
+                    t.completed=true    
+                }
+                return t
+            })
+
         }
         
         
     }
 });
 
-export const {deleteTask,switchEditModeTask,collapseAll,saveTask,collapseTask, setTaskList, addTaskList ,saveTaskListUpdate,switchToTastListEditMode,deleteTaskList,addTask} = TaskListSlice.actions;
+export const {setdeadLine,setcompleted,deleteTask,switchEditModeTask,collapseAll,saveTask,collapseTask, setTaskList, addTaskList ,saveTaskListUpdate,switchToTastListEditMode,deleteTaskList,addTask} = TaskListSlice.actions;
 export default TaskListSlice.reducer;
