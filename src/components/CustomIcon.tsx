@@ -1,6 +1,7 @@
 import { IconProp } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React from 'react'
+import Spinner from './Spinner.tsx'
 
 type Props = {
     size?:string,
@@ -17,11 +18,12 @@ export default function CustomIcon({size,iconName,className,onClick,loading,onHo
   return (
     <div className='relative inline-block'>
         
-    <div aria-disabled={loading} onClick={onClick} className={`${className} flex relative items-center justify-center rounded-full size-12 bg-purple-600
+    <div onClick={onClick} className={`${className} flex relative items-center justify-center rounded-full size-12 bg-purple-600
      hover:bg-opacity-50 ${loading ? 'cursor-wait':'cursor-pointer'}
     
     `}>
-        <FontAwesomeIcon  className={`text-gray-200 text-[23px]`} icon={iconName}/>
+      {loading  ? <Spinner/> : <FontAwesomeIcon  className={`text-gray-200 text-[23px]`} icon={iconName}/>}
+        
     </div>
     {ping && <>
         <span className="absolute flex h-3 w-3">

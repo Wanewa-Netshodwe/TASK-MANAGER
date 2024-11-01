@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { userType } from "../Types";
 export const  defaultUser={
     id:'',
     bio:"",
@@ -9,10 +10,17 @@ export const  defaultUser={
     img:"",
     isOnline:""
 }
-const initialState ={
+export type usersStateType ={
+    isAlertOpen:boolean
+    users:userType[],
+    currentUser:userType
+}
+const initialState:usersStateType ={
+    isAlertOpen:false,
+    users:[],
 currentUser:defaultUser
 }
-//default user 
+ 
 
 
 const userSlice = createSlice({
@@ -26,10 +34,13 @@ const userSlice = createSlice({
                 state.currentUser = user
         },
         setUsers:(state,action)=>{
-            //set all users
+            state.users = action.payload
+        },
+        setAlert:(state,action)=>{
+            state.isAlertOpen=action.payload
         }
     }
 
 })
-export const  {setUser,setUsers} =userSlice.actions
+export const  {setUser,setUsers,setAlert} =userSlice.actions
 export default userSlice.reducer

@@ -2,10 +2,10 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } f
 import { auth, db } from "./firebase.ts"
 import { catchError } from "../utils/catcherrors.ts"
 import { NavigateFunction } from "react-router-dom"
-import { doc,setDoc,serverTimestamp, getDoc, updateDoc, addDoc, collection, query, getDocs, where, deleteDoc } from "firebase/firestore"
+import { doc,setDoc,serverTimestamp, getDoc, updateDoc, addDoc, collection, query, getDocs, where, deleteDoc, orderBy, onSnapshot } from "firebase/firestore"
 import { setLoading, taskListType, taskType, userType } from "../Types.ts"
 import { error, success } from "../utils/toast.ts"
-import { defaultUser, setUser } from "../redux/userSlice.ts"
+import { defaultUser, setUser, setUsers } from "../redux/userSlice.ts"
 import { AppDispatch } from "../redux/store.ts"
 import { GenerateAvator } from "../utils/GenerateAvator.ts"
 import { convertT, convertTime } from "../utils/ConvertTime.ts"
@@ -123,6 +123,38 @@ export const BE_updateProfile= async(
   loading(false)
   goto('/')
 }
+export const BE_getAllUsers=async(
+  dispatch:AppDispatch,
+  loading:setLoading,
+)=>{
+  loading(true)
+  const q = query(collection(db,USERCOLLECTION),orderBy('isOnline','desc'))
+  onSnapshot(q,(usersSnapshot)=>{
+    let users:userType[] =[]
+    usersSnapshot.forEach(user=>{
+      const {img,bio,last_seen,username,isOnline,email,creation_Time,id} = user.data()
+      users.push({
+        img,
+        id,
+        creation_Time:convertTime(creation_Time.toDate()),
+        email,
+        isOnline,
+        username,
+        bio,
+        last_seen:convertTime(last_seen.toDate())
+      }
+      )
+    })
+    const userid =getUserid()
+    if(userid){
+      dispatch(setUsers(users.filter(u=> (u.id !== userid))))
+    }
+   
+
+  })
+
+
+}
 const AddUserToCollection = async(
     id:string,
     email:string,
@@ -193,6 +225,7 @@ const updateUserinfo= async (
 
 }
 
+
 //-----------------------TasksList-------------------------
 export const BE_addTaskList = async(
     dispatch:AppDispatch,
@@ -261,8 +294,9 @@ export const BE_getAllTasksList= async(
 )=>{
     const tasks = await getTaskLists()
     console.log('return of get all task: ',tasks)
-    dispatch(setTaskList(tasks))
     loading(false)
+    dispatch(setTaskList(tasks))
+    
 }
 export const BE_saveTaskList= async(
     dispatch:AppDispatch,

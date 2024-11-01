@@ -16,17 +16,22 @@ export default function Dashboard({}: Props) {
   const dispatch = useDispatch<AppDispatch>()
   const [loading ,setloading] =useState(true)
   useEffect(()=>{
-    BE_getAllTasksList(dispatch,setloading)
+    const get = async()=>{
+      await BE_getAllTasksList(dispatch,setloading)
+    }
+    
+    get()
    
-  },[dispatch])
+  },[])
  
 
   return (
+
     
     <FlipMove className='p-6 flex flex-wrap  justify-center gap-10'>
-        
+       
       
-      { loading ? <SingleLoaderList/> : tasks.length>0 ?
+      { loading ? <h1></h1> : tasks.length>0 ?
      
       tasks.map(t => 
         

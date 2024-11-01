@@ -52,12 +52,12 @@ export default function Header({}: Props) {
             getCurrentPage() === 'profile' ? (<CustomIcon ping  size='30' iconSize='18' onClick={()=>{handlePageChange('chat')}} iconName={faMessage}></CustomIcon>
           ) :  getCurrentPage() === 'chat' ? <>
           <Button name='add new list board' loading={newTaskloading} onClick={()=>{handleAddTask()}} s='hidden md:flex  bg-purple-600 px-3  text-white  hover:bg-opacity-50 hover:text-grey-50'></Button> 
-          <CustomIcon  className='md:hidden' size='30' iconName={faAdd}></CustomIcon>
+          <CustomIcon loading={newTaskloading}   className='md:hidden'  onClick={()=>{handleAddTask()}} size='30' iconName={faAdd}></CustomIcon>
           <CustomIcon   size='30' iconSize='18' onClick={()=>{handlePageChange('')}} iconName={faList}></CustomIcon>
           </> : <>
           <Button name='add new list board' loading={newTaskloading} onClick={()=>{handleAddTask()}} s={'hidden md:flex bg-purple-600 px-3   text-white  hover:bg-opacity-50 hover:text-grey-50'}></Button> 
-          <CustomIcon  className='md:hidden' size='50' iconName={faAdd}></CustomIcon>
-          <CustomIcon ping   className=' size-8' iconSize='28' onClick={()=>{handlePageChange('chat')}} iconName={faMessage}></CustomIcon>
+          <CustomIcon loading={newTaskloading}  onClick={()=>{handleAddTask()}}  className='md:hidden' size='50' iconName={faAdd}></CustomIcon>
+          <CustomIcon ping   size='30' iconSize='18' onClick={()=>{handlePageChange('chat')}} iconName={faMessage}></CustomIcon>
           <CustomIcon   size='30' iconSize='28' onClick={()=>{handlePageChange('')}} iconName={faList}></CustomIcon>
           </>
 
@@ -66,7 +66,7 @@ export default function Header({}: Props) {
           
           <div className="group relative  hover:cursor-pointer">
           <Userheaderprofile user={currentUser}/>
-          <div className='hidden group-hover:block absolute pt-5 w-fit  '>
+          <div className='hidden group-hover:block absolute pt-5 right-[2px] md:left-0 w-fit  '>
               <ul className='bg-secondary rounded-sm shadow-sm shadow-gray-700'>
             <p style={{fontFamily:'Poppins'}} onClick={()=>{handlePageChange('profile')}} className='  px-3 flex justify-start gap-2 py-2 items-center text-white text-[15px] hover:bg-purple-600 '><FontAwesomeIcon className='text-[12px]' icon={faUser} />Profile</p>
             <p onClick={()=>{handleSignOut()}} style={{fontFamily:'Poppins'}} className='px-3 flex justify-start gap-2 py-2 items-center text-white text-[15px] hover:bg-purple-600 ' > <FontAwesomeIcon className='text-[12px]' icon={faDoorOpen} />  Log Out {signoutloading ? <Spinner/> : null} </p>

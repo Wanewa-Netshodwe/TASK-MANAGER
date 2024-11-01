@@ -106,24 +106,8 @@ dispatch(collapseAll(obj))
  
   return (
     <div ref={ref}>
-      <div className='flex' >
-      {deadline && ( <div className='relative top-[58px] bg-gray-100 min-w-[30px]  rounded-l-md h-[180px]'>
-        <div className='bg-purple-700 w-full  p-[10px] rounded-tl-md h-11'>
-        <span className='text-[13px] p-2 w-full text-white'>Set Deadline</span>
-        </div>
-      <div className='p-2 text-end'>
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DemoContainer components={['DateTimePicker']}>
-        <DateTimePicker  label="Date and time"
-        onChange={handleDateChange}
-        value={selectedDate} 
-        />
-      </DemoContainer>
-    </LocalizationProvider>
-    <Button loading={isloading} onClick={()=>{handleDatesave()}} s='mt-3 bg-purple-700 p-2 w-16'name='Save'/>
-      </div>
+      <div className='flex flex-col md:flex-row' >
       
-    </div>) }
     <div className='relative'>
         {hasdeadline ? (<div className='text-start'>
           <span style={{fontFamily:'Poppins'}} className='text-[13px]  p-2 text-gray-200 '>Deadline</span>
@@ -136,7 +120,7 @@ dispatch(collapseAll(obj))
         
         
         
-      <div className={`bg-gray-100 w-full md:w-[300px] min-h-[180px] ${deadline  ? 'rounded-r-md' : 'rounded-md'}  overflow-hidden`}>
+      <div className={`bg-gray-100 w-full md:w-[300px] min-h-[180px] ${deadline  ? '  md:rounded-l-md  md:rounded-r-none' : ''} rounded-md  overflow-hidden`}>
             <div className={`flex  md:gap-2  h-11 ${ completed ? 'bg-green-400' :'bg-purple-700'} justify-start items-center`}>
             {tasklist?.editMode ?( <input style={{fontFamily:'Poppins'}} 
             value={homeTitle} onChange={(e)=>{sethomeTitle(e.target.value)}}
@@ -196,6 +180,25 @@ dispatch(collapseAll(obj))
           </div></> }
 
       </div>
+
+      {deadline && ( <div className='relative top-[58px] bg-gray-100 min-w-[30px] rounded-md  md:rounded-l-none md:rounded-r-md h-[180px]'>
+        <div className='bg-purple-700 w-full  p-[10px] rounded-tl-md rounded-tr-md  md:rounded-tl-none md:rounded-tr-md h-11'>
+        <span className='text-[13px] p-2 w-full text-white'>Set Deadline</span>
+        </div>
+      <div className='p-2 text-end'>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <DemoContainer components={['DateTimePicker']}>
+        <DateTimePicker  label="Date and time"
+        onChange={handleDateChange}
+        value={selectedDate} 
+        />
+      </DemoContainer>
+    </LocalizationProvider>
+    <Button loading={isloading} onClick={()=>{handleDatesave()}} s='mt-3 bg-purple-700 p-2 w-16'name='Save'/>
+      </div>
+      
+    </div>) }
+
       </div>
      
 
