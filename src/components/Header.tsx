@@ -49,11 +49,11 @@ export default function Header({}: Props) {
          </div>
          <div className="flex px-3 gap-3 justify-center items-center">
           {
-            getCurrentPage() === 'profile' ? (<CustomIcon ping  size='30' iconSize='18' onClick={()=>{handlePageChange('chat')}} iconName={faMessage}></CustomIcon>
-          ) :  getCurrentPage() === 'chat' ? <>
-          <Button name='add new list board' loading={newTaskloading} onClick={()=>{handleAddTask()}} s='hidden md:flex  bg-purple-600 px-3  text-white  hover:bg-opacity-50 hover:text-grey-50'></Button> 
-          <CustomIcon loading={newTaskloading}   className='md:hidden'  onClick={()=>{handleAddTask()}} size='30' iconName={faAdd}></CustomIcon>
-          <CustomIcon   size='30' iconSize='18' onClick={()=>{handlePageChange('')}} iconName={faList}></CustomIcon>
+            getCurrentPage() === 'profile' ?
+             (<><CustomIcon ping  size='30' iconSize='18' onClick={()=>{handlePageChange('chat')}} iconName={faMessage}></CustomIcon>
+             <CustomIcon   size='30' iconSize='18' onClick={()=>{handlePageChange('')}} iconName={faList}></CustomIcon>
+          </>) :  getCurrentPage() === 'chat' ? <>
+           <CustomIcon   size='30' iconSize='18' onClick={()=>{handlePageChange('')}} iconName={faList}></CustomIcon>
           </> : <>
           <Button name='add new list board' loading={newTaskloading} onClick={()=>{handleAddTask()}} s={'hidden md:flex bg-purple-600 px-3   text-white  hover:bg-opacity-50 hover:text-grey-50'}></Button> 
           <CustomIcon loading={newTaskloading}  onClick={()=>{handleAddTask()}}  className='md:hidden' size='50' iconName={faAdd}></CustomIcon>

@@ -3,17 +3,23 @@ import Sidebar from './Sidebar.tsx'
 import Users from './Users.tsx'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../redux/store.ts'
-import { setChatTab } from '../redux/chatSlice.ts'
+import { setChatTab, setCurrentSelectedChat } from '../redux/chatSlice.ts'
 import Chats from './Chats.tsx'
-import { BE_getAllUsers } from '../backend/Queries.ts'
+import { BE_getAllUsers, BE_getCharts, createdChat } from '../backend/Queries.ts'
+import FlipMove from 'react-flip-move'
+import ChatsProfile from './ChatsProfile.tsx'
+import { defaultUser } from '../redux/userSlice.ts'
 
-type Props = {}
+type Props = {
+  className?:string
+}
 
 
-export default function Leftsidebar({}: Props) {
+export default function Leftsidebar({className}: Props) {
   useEffect(()=>{
 const get =async()=>{
-      BE_getAllUsers(dispatch,setusersloading)
+      await BE_getAllUsers(dispatch,setusersloading)
+      await BE_getCharts(dispatch)
 }
 get()
   },[])
@@ -21,19 +27,34 @@ get()
   const [usersloading,setusersloading]=useState(true)
     let ischat = useSelector((state:RootState) =>state.chat.ischatTab)
     let users = useSelector((state:RootState)=>state.user.users)
+    let chats = useSelector((state:RootState)=>state.chat.chats)
     console.log(ischat)
   return (
-    <div>
+    <div className={`${className}`}>
         <Sidebar>
           <div>
           <div className="flex  ">
                 <p onClick={()=>{dispatch(setChatTab(true))}} style={{fontFamily:'Poppins'}} className={` text-gray-200 hover:bg-gray-200 ${ischat &&  'bg-purple-700 text-gray-200 '} hover:text-gray-900  cursor-pointer flex-1 p-4 text-center `}>Chats</p>
-                <p onClick={()=>{dispatch(setChatTab(false))}} style={{fontFamily:'Poppins'}}  className={` text-gray-200 hover:bg-gray-200 hover:text-gray-900 ${!ischat &&  'bg-purple-700 text-gray-100 '} cursor-pointer flex-1 p-4 text-center`} >Users</p>
+                <p onClick={()=>{dispatch(setChatTab(false)); dispatch(setCurrentSelectedChat(defaultUser))}} style={{fontFamily:'Poppins'}}  className={` text-gray-200 hover:bg-gray-200 hover:text-gray-900 ${!ischat &&  'bg-purple-700 text-gray-100 '} cursor-pointer flex-1 p-4 text-center`} >Users</p>
             </div>
-            {ischat ? <Chats /> : 
-            users.length >0 ? users.map(u=> <Users key={u.id} user={u}/> ) :
-           <h1>no users found</h1>
-           }
+            {ischat ?  (
+    <div>
+{chats.length > 0 ? (
+            chats.map(c => <ChatsProfile key={c.id} userId={createdChat(c.senderId) ? c.recieverId : c.senderId} chat={c} />)
+        ) : (
+            <h1 className='text-white p-2 text-[12px] font-mono'>no chats found Select A User to start a convo</h1>
+        )}
+</div>
+
+) : (
+    <FlipMove>
+        {users.length > 0 ? (
+            users.map(u => <Users key={u.id} user={u} />)
+        ) : (
+            <h1 className='text-white'>no users found</h1>
+        )}
+    </FlipMove>
+)}
           </div>
            
            

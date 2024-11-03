@@ -2,18 +2,22 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } f
 import { auth, db } from "./firebase.ts"
 import { catchError } from "../utils/catcherrors.ts"
 import { NavigateFunction } from "react-router-dom"
-import { doc,setDoc,serverTimestamp, getDoc, updateDoc, addDoc, collection, query, getDocs, where, deleteDoc, orderBy, onSnapshot } from "firebase/firestore"
-import { setLoading, taskListType, taskType, userType } from "../Types.ts"
+import { doc,setDoc,serverTimestamp, getDoc, updateDoc, addDoc, collection, query, getDocs, where, deleteDoc, orderBy, onSnapshot, or, and } from "firebase/firestore"
+import { chatType, messageType, setLoading, taskListType, taskType, userType } from "../Types.ts"
 import { error, success } from "../utils/toast.ts"
-import { defaultUser, setUser, setUsers } from "../redux/userSlice.ts"
+import { defaultUser, setAlert, setUser, setUsers } from "../redux/userSlice.ts"
 import { AppDispatch } from "../redux/store.ts"
 import { GenerateAvator } from "../utils/GenerateAvator.ts"
 import { convertT, convertTime } from "../utils/ConvertTime.ts"
 import { addTask, addTaskList, defaultTask, deleteTask, deleteTaskList, saveTask, saveTaskListUpdate, setcompleted, setdeadLine, setTaskList } from "../redux/TaskListSlice.ts"
+import { setChats, setCurrentMessages } from "../redux/chatSlice.ts"
 //Collection Names
 const USERCOLLECTION ='users'
 const TASKLISTCOLLECTION='tasks'
 const TASKCOLLECTION = 'tasks'
+const CHATSCOLLECTION = 'chats'
+const MESSAGECOLLECTION = 'message'
+
 export const getUserid=()=>{
     return JSON.parse(localStorage.getItem('user')|| '{}').id
 }
@@ -136,12 +140,12 @@ export const BE_getAllUsers=async(
       users.push({
         img,
         id,
-        creation_Time:convertTime(creation_Time.toDate()),
+        creation_Time: creation_Time ? convertTime(creation_Time.toDate()) : '',
         email,
         isOnline,
         username,
         bio,
-        last_seen:convertTime(last_seen.toDate())
+        last_seen: last_seen ? convertTime(last_seen.toDate()) : ''
       }
       )
     })
@@ -154,6 +158,28 @@ export const BE_getAllUsers=async(
   })
 
 
+}
+export const getUserInfo=async(id:string):Promise<userType>=>{
+  const userRef =doc(db,USERCOLLECTION,id)
+  const user = await getDoc(userRef)
+
+  if(user.exists()){
+      const {bio,last_seen,creation_Time,email,username,img,isOnline,id} =user.data()
+      return{
+          id,
+          bio,
+          last_seen : last_seen ?  convertTime(last_seen.toDate()) : ' ',
+          creation_Time: creation_Time ? convertTime(creation_Time.toDate()) : '',
+          email,
+          username,
+          img,
+          isOnline
+      }
+  }
+  else{
+      error('User Not Found')
+      return defaultUser
+  }
 }
 const AddUserToCollection = async(
     id:string,
@@ -177,28 +203,7 @@ const AddUserToCollection = async(
     return getUserInfo(id)
 
 }
-const getUserInfo=async(id:string):Promise<userType>=>{
-    const userRef =doc(db,USERCOLLECTION,id)
-    const user = await getDoc(userRef)
 
-    if(user.exists()){
-        const {bio,last_seen,creation_Time,email,username,img,isOnline,id} =user.data()
-        return{
-            id,
-            bio,
-            last_seen : convertTime(last_seen.toDate()),
-            creation_Time: convertTime(creation_Time.toDate()),
-            email,
-            username,
-            img,
-            isOnline
-        }
-    }
-    else{
-        error('User Not Found')
-        return defaultUser
-    }
-}
 const updateUserinfo= async (
     {   id,
         username,
@@ -206,15 +211,16 @@ const updateUserinfo= async (
         isOnline,
         isOffline,
     }:{
-        id:string,
+        id?:string,
         username?:string,
         img?:string,
         isOnline?:boolean,
         isOffline?:boolean,
     }
 ) =>{
-    const userRef = doc(db, USERCOLLECTION, id);
-    await updateDoc(userRef, {
+     if(id){
+      const userRef = doc(db, USERCOLLECTION, id);
+      await updateDoc(userRef, {
         ...(username && {username}),
         ...(img && {img}),
         ...(isOnline && {isOnline}),
@@ -222,6 +228,8 @@ const updateUserinfo= async (
         last_seen:serverTimestamp(),
     }
 );
+    } 
+  
 
 }
 
@@ -548,5 +556,177 @@ const getTasks = async(listid,id)=>{
    return tasks
 }
   
+// ------------------------chats---------------------------------
 
+export const BE_startChart= async(
+  dispatch:AppDispatch,
+  loading:setLoading,
+  rId:string,
+  rName:string,
+)=>{
+  loading(true)
+
+  // check if doc exist
+  if(getUserid()){
+
+    const q = query(
+      collection(db, CHATSCOLLECTION),
+      or(
+          and(
+              where('senderId', '==', getUserid()),
+              where('recieverId', '==', rId)
+          ),
+          and(
+              where('senderId', '==', rId),
+              where('recieverId', '==', getUserid())
+          )
+      )
+  );
+  const res = await getDocs(q)
+  if (res.empty){
+    const newChart = addDoc(collection(db,CHATSCOLLECTION),{
+      lastMsg:'',
+      senderId : getUserid(),
+      recieverId : rId,
+      recieverTosenderMsgCount:0,
+      senderTorecieverMsgCount:0,
+      updatedAt:serverTimestamp()
+    })
+    const res = await newChart
+    await updateDoc(res,{
+      id: res.id
+    })
+    
+    loading(false)
+    dispatch(setAlert({open:false}))
+    
+  }else{
+    loading(false)
+    dispatch(setAlert({open:false}))
+    error(`You already have a chat with : ${rName}`)
+  }
+ 
+  
+}
+
+}
+export const BE_getCharts= async(
+  dispatch:AppDispatch
+)=>{
+  if(getUserid()){
+    const q = query(collection(db,CHATSCOLLECTION), or(
+      where('senderId','==',getUserid()),
+      where('recieverId','==',getUserid())
+    ),orderBy('updatedAt','desc'))
+
+    onSnapshot(q,ChatsSnapshot=>{
+      let chats:chatType[]=[]
+      ChatsSnapshot.forEach(c=>{
+        const {recieverId,senderId,updatedAt,lastMsg,id,senderTorecieverMsgCount,recieverTosenderMsgCount} = c.data()
+        chats.push({
+          id:id,
+          recieverId:recieverId,
+          senderId:senderId,
+          lastMsg:lastMsg,
+          recieverTosenderMsgCount:recieverTosenderMsgCount,
+          senderTorecieverMsgCount:senderTorecieverMsgCount,
+          updatedAt:updatedAt
+        })
+      })
+      console.log('my chats :',chats)
+      dispatch(setChats(chats))
+
+    })
+
+
+  }
+
+}
+export const createdChat=(senderId:string)=>{
+  return senderId === getUserid()
+}
+export const BE_getMessages = async(dispatch:AppDispatch,
+  chatid:string,
+  loading:setLoading
+
+)=>{
+const q = query(collection(db,CHATSCOLLECTION,chatid,MESSAGECOLLECTION),orderBy('createdAt','asc'))
+
+onSnapshot(q,messageSnaphot =>{
+  let messages:messageType[] =[]
+  messageSnaphot.forEach(msg=>{
+    const {senderId,content,createdAt} = msg.data()
+    messages.push({
+      senderId:senderId,
+      id : msg.id,
+      content:content,
+      createdAt: createdAt ? convertTime(createdAt.toDate()) : ''
+    })
+  })
+
+  dispatch(setCurrentMessages(messages))
+})
+}
+export const BE_sendMsg = async(
+  chatid:string,
+  message:messageType,
+  loading:setLoading)=>{
+loading(true)
+const res = await addDoc(collection(db,CHATSCOLLECTION,chatid,MESSAGECOLLECTION,),{
+  ...message,
+  createdAt:serverTimestamp()
+})
+loading(false)
+
+const d = await getDoc(doc(db,res.path))
+if(d.exists()){
+  await update_messageCount(chatid,true)
+  await updateLastMsg(chatid,d.data().content)
+  await updateUserinfo({})
+}
+
+
+}
+export const update_messageCount=async(
+  chatid:string,
+  reset?:boolean
+)=>{
+    const chat = await getDoc(doc(db,CHATSCOLLECTION,chatid))
+
+    let senderTorecieverMsgCount = chat.data()?.senderTorecieverMsgCount
+    let recieverTosenderMsgCount = chat.data()?.recieverTosenderMsgCount
+
+    if (createdChat(chat.data()?.senderId)){
+        if(reset){
+          recieverTosenderMsgCount = 0
+        }
+        else{
+          senderTorecieverMsgCount++
+        }
+    }else{
+      if(reset){
+        senderTorecieverMsgCount = 0
+      }
+      else{
+        recieverTosenderMsgCount++
+      }
+
+    }
+    await updateDoc(doc(db,CHATSCOLLECTION,chatid),{
+      updatedAt:serverTimestamp(),
+      recieverTosenderMsgCount,
+      senderTorecieverMsgCount
+
+
+    })
+
+}
+
+export const updateLastMsg= async(chatid,message)=>{
+  await update_messageCount(chatid)
+await updateDoc(doc(db,CHATSCOLLECTION,chatid),{
+  lastMsg:message,
+  updatedAt:serverTimestamp()
+})
+}
 

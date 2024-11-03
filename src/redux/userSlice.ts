@@ -11,12 +11,20 @@ export const  defaultUser={
     isOnline:""
 }
 export type usersStateType ={
-    isAlertOpen:boolean
+    toggleUsers:boolean,
+    isAlertOpen:{
+        open:boolean,
+        receiverId?:string,
+        recieverName?:string
+    }
     users:userType[],
     currentUser:userType
 }
 const initialState:usersStateType ={
-    isAlertOpen:false,
+    toggleUsers:true,
+    isAlertOpen:{
+        open:false,
+    },
     users:[],
 currentUser:defaultUser
 }
@@ -38,9 +46,12 @@ const userSlice = createSlice({
         },
         setAlert:(state,action)=>{
             state.isAlertOpen=action.payload
+        },
+        setToggle:(state)=>{
+            state.toggleUsers = !state.toggleUsers
         }
     }
 
 })
-export const  {setUser,setUsers,setAlert} =userSlice.actions
+export const  {setUser,setUsers,setAlert,setToggle} =userSlice.actions
 export default userSlice.reducer

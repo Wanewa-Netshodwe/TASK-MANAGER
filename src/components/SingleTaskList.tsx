@@ -4,7 +4,7 @@ import React, { forwardRef, useState } from 'react'
 import Tasks from './Tasks.tsx'
 import { taskListType } from '../Types.ts'
 import Spinner from './Spinner.tsx'
-import { BE_addTask, BE_completed, BE_deleteTaskList, BE_saveTaskList, BE_setdeadLine } from '../backend/Queries.ts'
+import { BE_addTask, BE_completed, BE_deleteTaskList, BE_saveTaskList, BE_setdeadLine, createdChat, getUserid } from '../backend/Queries.ts'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../redux/store.ts'
 import { collapseAll, defaultTaskList, switchToTastListEditMode } from '../redux/TaskListSlice.ts'
@@ -83,6 +83,24 @@ dispatch(collapseAll(obj))
   const[hasdeadline,sethasdeadline] = useState(tasklist?.deadline)
   const[deadline,setdeadline] = useState(false)
   const[collapsedall,setcollapsedall] = useState(true)
+  const chats = useSelector((state:RootState)=>state.chat.chats)
+  const handleShareTask=()=>{
+    if (chats.length < 1){
+      console.log('i have no chats')
+    }
+    chats.forEach(c=>{
+      if(createdChat(c.senderId)){
+        console.log(`im in a chat with : ${c.recieverId}`)
+      }
+      else{
+        if (getUserid() === c.recieverId){
+            console.log(`im in a chat with : ${c.senderId}`)
+        }else{
+          console.log('no chat found')
+        }
+      }
+    })
+  }
   const[showmenu,setmenu] = useState(false)
   const handleSaveTaskListTitle =() =>{
     console.log('id is :' , tasklist?.id)
@@ -173,7 +191,7 @@ dispatch(collapseAll(obj))
       {showmenu && <><div className='bg-gray-50 w-[110px] absolute top-[102px] right-0 rounded-md'>
               <ul onClick={()=>setmenu(!showmenu)} className='p-1 text-start'>
                 <li onClick={()=>{handleCollapseAll(); setcollapsedall(!collapsedall)}} className='p-2 hover:bg-purple-100 w-full text-[12px] flex items-center '><FontAwesomeIcon className='pr-3' icon={ collapsedall ? faCaretDown :faCaretUp  }/><button>Collapse</button></li>
-                <li  className='  text-gray-300 w-full text-[12px] flex items-center p-2 bg'><FontAwesomeIcon className='pr-3' icon={faShare}/><button disabled>Share Task</button></li>
+                <li onClick={()=>{handleShareTask()}}  className='  text-gray-300 w-full text-[12px] flex items-center p-2 bg'><FontAwesomeIcon className='pr-3' icon={faShare}/><button disabled>Share Task</button></li>
                 <li onClick={()=>{setdeadline(!deadline)}} className={`${completed ? 'text-gray-300' : 'hover:bg-purple-100' } w-full text-[11px] flex items-center p-2`}><FontAwesomeIcon className='pr-3' icon={faCalendar}/>{ completed ? <button disabled>Set Deadline</button> : <button>Set Deadline</button> }</li>
                 <li onClick={()=>{handlecompleted()}} className={`${completed ? 'text-green-400': 'hover:bg-purple-100'}  w-full text-[12px] flex items-center p-2`}><FontAwesomeIcon className='pr-3' icon={faCheckCircle}/>{ completed ? <button disabled>Done</button> : <button>Completed</button> }</li>
               </ul>
