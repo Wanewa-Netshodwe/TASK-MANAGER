@@ -11,6 +11,8 @@ export const  defaultUser={
     isOnline:""
 }
 export type usersStateType ={
+    usersloading:boolean,
+    shareAvailableUsers:userType[]
     toggleUsers:boolean,
     isAlertOpen:{
         open:boolean,
@@ -21,6 +23,8 @@ export type usersStateType ={
     currentUser:userType
 }
 const initialState:usersStateType ={
+    shareAvailableUsers:[],
+    usersloading:false,
     toggleUsers:true,
     isAlertOpen:{
         open:false,
@@ -49,9 +53,15 @@ const userSlice = createSlice({
         },
         setToggle:(state)=>{
             state.toggleUsers = !state.toggleUsers
+        },
+        setusersloading:(state,action)=>{
+            state.usersloading =action.payload
+        },
+        setShareUsers:(state,action)=>{
+            state.shareAvailableUsers = action.payload
         }
     }
 
 })
-export const  {setUser,setUsers,setAlert,setToggle} =userSlice.actions
+export const  {setShareUsers,setusersloading,setUser,setUsers,setAlert,setToggle} =userSlice.actions
 export default userSlice.reducer

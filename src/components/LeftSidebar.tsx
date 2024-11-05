@@ -16,18 +16,13 @@ type Props = {
 
 
 export default function Leftsidebar({className}: Props) {
-  useEffect(()=>{
-const get =async()=>{
-      await BE_getAllUsers(dispatch,setusersloading)
-      await BE_getCharts(dispatch)
-}
-get()
-  },[])
+
   const dispatch= useDispatch<AppDispatch>()
-  const [usersloading,setusersloading]=useState(true)
+
     let ischat = useSelector((state:RootState) =>state.chat.ischatTab)
     let users = useSelector((state:RootState)=>state.user.users)
     let chats = useSelector((state:RootState)=>state.chat.chats)
+    let usersloading = useSelector((state:RootState)=>state.user.usersloading)
     console.log(ischat)
   return (
     <div className={`${className}`}>

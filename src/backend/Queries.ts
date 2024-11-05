@@ -3,13 +3,13 @@ import { auth, db } from "./firebase.ts"
 import { catchError } from "../utils/catcherrors.ts"
 import { NavigateFunction } from "react-router-dom"
 import { doc,setDoc,serverTimestamp, getDoc, updateDoc, addDoc, collection, query, getDocs, where, deleteDoc, orderBy, onSnapshot, or, and } from "firebase/firestore"
-import { chatType, messageType, setLoading, taskListType, taskType, userType } from "../Types.ts"
+import { chatType, messageType, setLoading, taskDeadline, taskListType, taskType, userType } from "../Types.ts"
 import { error, success } from "../utils/toast.ts"
-import { defaultUser, setAlert, setUser, setUsers } from "../redux/userSlice.ts"
+import { defaultUser, setAlert, setUser, setUsers, setusersloading } from "../redux/userSlice.ts"
 import { AppDispatch } from "../redux/store.ts"
 import { GenerateAvator } from "../utils/GenerateAvator.ts"
 import { convertT, convertTime } from "../utils/ConvertTime.ts"
-import { addTask, addTaskList, defaultTask, deleteTask, deleteTaskList, saveTask, saveTaskListUpdate, setcompleted, setdeadLine, setTaskList } from "../redux/TaskListSlice.ts"
+import { addTask, addTaskList, defaultTask, deleteTask, deleteTaskList, saveTask, saveTaskListUpdate, setcompleted, setdeadLine, setDeadlines, setTaskList } from "../redux/TaskListSlice.ts"
 import { setChats, setCurrentMessages } from "../redux/chatSlice.ts"
 //Collection Names
 const USERCOLLECTION ='users'
@@ -129,9 +129,8 @@ export const BE_updateProfile= async(
 }
 export const BE_getAllUsers=async(
   dispatch:AppDispatch,
-  loading:setLoading,
 )=>{
-  loading(true)
+  setusersloading(true)
   const q = query(collection(db,USERCOLLECTION),orderBy('isOnline','desc'))
   onSnapshot(q,(usersSnapshot)=>{
     let users:userType[] =[]
@@ -153,6 +152,7 @@ export const BE_getAllUsers=async(
     if(userid){
       dispatch(setUsers(users.filter(u=> (u.id !== userid))))
     }
+    setusersloading(false)
    
 
   })
@@ -235,6 +235,18 @@ const updateUserinfo= async (
 
 
 //-----------------------TasksList-------------------------
+export const BE_AssignTask =async(listid:string,assigneeId:string,goto:NavigateFunction)=>{
+  const dref = doc(db,TASKCOLLECTION,listid)
+  const docRef = await getDoc(dref)
+  const {assignedUserIds,} = docRef.data()
+  assignedUserIds.push(assigneeId)
+
+  await updateDoc(dref,{
+    assignedUserIds:assignedUserIds
+  })
+  goto('/')
+
+}
 export const BE_addTaskList = async(
     dispatch:AppDispatch,
     setLoading:setLoading
@@ -244,6 +256,7 @@ export const BE_addTaskList = async(
     const docRef = await addDoc(collection(db, TASKLISTCOLLECTION), {
         title:'Task Title',
         userId: getUserid(),
+        assignedUserIds:[getUserid()],
         deadline:"",
         completed:false
     });
@@ -300,7 +313,7 @@ export const BE_getAllTasksList= async(
     dispatch:AppDispatch,
     loading:setLoading
 )=>{
-    const tasks = await getTaskLists()
+    const tasks = await getTaskLists(dispatch)
     console.log('return of get all task: ',tasks)
     loading(false)
     dispatch(setTaskList(tasks))
@@ -492,10 +505,10 @@ const gt = async (listid) => {
     return tasks;
   };
 
-const getTaskLists = async () => {
+const getTaskLists = async (dispatch:AppDispatch) => {
     let tasklists: taskListType[] = [];
     const userId = getUserid();
-    const q = query(collection(db, TASKLISTCOLLECTION), where("userId", "==", userId));
+    const q = query(collection(db, TASKLISTCOLLECTION), where("assignedUserIds", "array-contains", userId));
     console.log('Query object:', q);
   
     const tasklistSnapshot = await getDocs(q);
@@ -507,6 +520,13 @@ const getTaskLists = async () => {
   
     const promises = tasklistSnapshot.docs.map(async (doc) => {
       const { title, userId, id,completed ,deadline} = doc.data();
+      if(deadline){
+          const dead_line:taskDeadline={
+            date:deadline,
+            id:id
+          }
+          dispatch(setDeadlines(dead_line))
+      }
       const tasks = await gt(id); 
       tasklists.push({
         id: id,

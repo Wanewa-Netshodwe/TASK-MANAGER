@@ -2,18 +2,20 @@ import { faAdd, faCalendar, faCaretDown, faCaretUp, faCheckCircle, faEllipsisVer
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { forwardRef, useState } from 'react'
 import Tasks from './Tasks.tsx'
-import { taskListType } from '../Types.ts'
+import { taskListType, userType } from '../Types.ts'
 import Spinner from './Spinner.tsx'
-import { BE_addTask, BE_completed, BE_deleteTaskList, BE_saveTaskList, BE_setdeadLine, createdChat, getUserid } from '../backend/Queries.ts'
+import { BE_addTask, BE_AssignTask, BE_completed, BE_deleteTaskList, BE_saveTaskList, BE_setdeadLine, createdChat, getUserid } from '../backend/Queries.ts'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../redux/store.ts'
-import { collapseAll, defaultTaskList, switchToTastListEditMode } from '../redux/TaskListSlice.ts'
+import { collapseAll, defaultTaskList, setShowmodal, switchToTastListEditMode } from '../redux/TaskListSlice.ts'
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import  Button  from './Button.tsx'
 import { useNavigate } from 'react-router-dom'
+import Userheaderprofile from './Userheaderprofile.tsx'
+import { setShareUsers } from '../redux/userSlice.ts'
 
 type TaskListProps = {
   tasklist?:taskListType
@@ -21,6 +23,9 @@ type TaskListProps = {
 
 
 const  SingleTaskList = forwardRef(({tasklist}: TaskListProps,ref:React.LegacyRef<HTMLDivElement>) => {
+  const currentDate = Date.now()
+  console.log(tasklist?.deadline)
+  console.log(currentDate)
   const [selectedDate, setSelectedDate] = useState(null);
   const [isloading, setisloading] = useState(false);
   const goto = useNavigate()
@@ -75,6 +80,7 @@ dispatch(collapseAll(obj))
           d(switchToTastListEditMode(taskinfo))
     
   }
+
   const[saveLoading,setsaveLoading] = useState(false)
   const[deleteLoading,setdeleteLoading] = useState(false)
   const[addtaskLoading,setaddtaskLoading] = useState(false)
@@ -83,23 +89,46 @@ dispatch(collapseAll(obj))
   const[hasdeadline,sethasdeadline] = useState(tasklist?.deadline)
   const[deadline,setdeadline] = useState(false)
   const[collapsedall,setcollapsedall] = useState(true)
+  // const[avaUsers,setavaUsers] = useState<userType[]>([])
   const chats = useSelector((state:RootState)=>state.chat.chats)
+  const users = useSelector((state:RootState)=>state.user.users)
+  const avaUsers = useSelector((state:RootState)=>state.user.shareAvailableUsers)
+  const sharemodal = useSelector((state:RootState)=>state.tasklist.showSharemodal)
+  let people_in_chat:string[] = []
   const handleShareTask=()=>{
+    console.log(users)
     if (chats.length < 1){
       console.log('i have no chats')
     }
     chats.forEach(c=>{
       if(createdChat(c.senderId)){
+        people_in_chat.push(c.recieverId)
         console.log(`im in a chat with : ${c.recieverId}`)
       }
       else{
         if (getUserid() === c.recieverId){
+            people_in_chat.push(c.senderId)
             console.log(`im in a chat with : ${c.senderId}`)
         }else{
           console.log('no chat found')
         }
       }
     })
+    let usrs:userType[]=[]
+    people_in_chat.forEach(p=>{
+      console.log(p)
+      users.forEach(user=>{
+        console.log(user.id)
+        if(p === user.id){
+          console.log('user :', user)
+          usrs.push(user)
+        }
+      })
+    })
+    console.log('users in chat :',usrs)
+    dispatch(setShareUsers(usrs))
+    dispatch(setShowmodal())
+    console.log('availabel users ',avaUsers)
   }
   const[showmenu,setmenu] = useState(false)
   const handleSaveTaskListTitle =() =>{
@@ -118,6 +147,18 @@ dispatch(collapseAll(obj))
   const nothing=()=>{
 
   }
+  const handleclickshare =(user:userType)=>{
+    console.log('clicked user id : ',user.id)
+    const valid = window.confirm(`are you sure u want to share task(${tasklist?.title}) with user : ${user.username}`)
+   if(valid){
+    if(tasklist?.id)
+    BE_AssignTask(tasklist?.id,user.id,goto)
+  setShowmodal()
+    console.log('valid')
+   }else{
+    console.log('false')
+   }
+  }
   
   
   const[homeTitle,sethomeTitle] = useState(tasklist?.title)
@@ -133,6 +174,26 @@ dispatch(collapseAll(obj))
 
         </div>) : <div className=' h-[58px]'></div>}
 
+          {
+            sharemodal && <>
+             <div className='border-2 flex flex-col gap-2 w-fit p-3'>
+            <h3 className="text-white text-center">Available users</h3>
+            {avaUsers.length >0 ?  avaUsers.map(user=>
+            <> <div className=' cursor-pointer' onClick={()=>{handleclickshare(user)}}>
+              <Userheaderprofile key={user.id} user={user} display />
+            </div>
+            </>
+                
+
+            )
+            :<><h1>no user found</h1></>
+            }
+           
+          </div>
+            
+            </>
+          }
+         
        
 
         

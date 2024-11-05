@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { taskListType, taskType } from "../Types";
+import { taskDeadline, taskListType, taskType } from "../Types";
 
 export const defaultTask: taskType = {
     id:'',
@@ -13,10 +13,14 @@ export const defaultTaskList: taskListType = {
 };
 
 type currentTaskListSliceType = {
+    tasksDeadlines:taskDeadline[],
+    showSharemodal:boolean,
     currentTaskList: taskListType[]
 };
 
 const initialState: currentTaskListSliceType = {
+    tasksDeadlines:[],
+    showSharemodal:false,
     currentTaskList: [],
 };
 
@@ -161,11 +165,18 @@ const TaskListSlice = createSlice({
                 return t
             })
 
+        },
+        setShowmodal:(state)=>{
+            state.showSharemodal = !state.showSharemodal
+        },
+        setDeadlines:(state,action)=>{
+            state.tasksDeadlines.push(action.payload)
         }
+        
         
         
     }
 });
 
-export const {setdeadLine,setcompleted,deleteTask,switchEditModeTask,collapseAll,saveTask,collapseTask, setTaskList, addTaskList ,saveTaskListUpdate,switchToTastListEditMode,deleteTaskList,addTask} = TaskListSlice.actions;
+export const {setDeadlines,setShowmodal,setdeadLine,setcompleted,deleteTask,switchEditModeTask,collapseAll,saveTask,collapseTask, setTaskList, addTaskList ,saveTaskListUpdate,switchToTastListEditMode,deleteTaskList,addTask} = TaskListSlice.actions;
 export default TaskListSlice.reducer;

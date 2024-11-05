@@ -38,7 +38,14 @@ export default function Dashboard({}: Props) {
         <SingleTaskList key={t.id} tasklist={t} ></SingleTaskList>
       )
       : 
-      <h1 className=' text-white '>No Task Found</h1>
+      <>
+      <div className='flex justify-center flex-col mt-16 gap-5'>
+      <h1 style={{fontFamily:'Poppins'}}  className=' text-txt_color  uppercase'>No Tasks Found </h1>
+      <span className=' text-center text-txt_color font-mono'>create one!</span>
+      </div>
+           
+      </>
+ 
       
      }
      

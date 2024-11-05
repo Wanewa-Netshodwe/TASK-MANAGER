@@ -8,6 +8,10 @@ export type  userType={
     img:string,
     isOnline:string
 }
+export type taskDeadline ={
+    date:Date,
+    id:string
+}
 export type taskListType ={
     id?:string
     title:string,
@@ -16,7 +20,8 @@ export type taskListType ={
     completed?:boolean,
     deadline?:string
     tasks?:taskType[],
-    assignedUserIds?:string[]
+    assignedUserIds?:string[],
+    failed?:boolean
 }
 export type taskType={
     id?:string
