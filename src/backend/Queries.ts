@@ -9,7 +9,7 @@ import { defaultUser, setAlert, setUser, setUsers, setusersloading } from "../re
 import { AppDispatch } from "../redux/store.ts"
 import { GenerateAvator } from "../utils/GenerateAvator.ts"
 import { convertT, convertTime } from "../utils/ConvertTime.ts"
-import { addTask, addTaskList, defaultTask, deleteTask, deleteTaskList, saveTask, saveTaskListUpdate, setcompleted, setdeadLine, setDeadlines, setTaskList } from "../redux/TaskListSlice.ts"
+import { addTask, addTaskList, defaultTask, deleteTask, deleteTaskList, saveTask, saveTaskListUpdate, setcompleted, setdeadLine, setDeadlines, setFailed, setTaskList } from "../redux/TaskListSlice.ts"
 import { setChats, setCurrentMessages } from "../redux/chatSlice.ts"
 //Collection Names
 const USERCOLLECTION ='users'
@@ -247,6 +247,13 @@ export const BE_AssignTask =async(listid:string,assigneeId:string,goto:NavigateF
   goto('/')
 
 }
+export const BE_setFailed =async(dispatch,id)=>{
+  const dref = doc(db,TASKCOLLECTION,id)
+  await updateDoc(dref,{
+    failed : true
+  })
+  dispatch(setFailed)
+}
 export const BE_addTaskList = async(
     dispatch:AppDispatch,
     setLoading:setLoading
@@ -275,6 +282,7 @@ export const BE_addTaskList = async(
             title : title,
             userId :userId,
             editMode:true,
+            failed:false,
             tasks:[]
         }
         dispatch(addTaskList(tl))
@@ -519,7 +527,7 @@ const getTaskLists = async (dispatch:AppDispatch) => {
     }
   
     const promises = tasklistSnapshot.docs.map(async (doc) => {
-      const { title, userId, id,completed ,deadline} = doc.data();
+      const { title, userId, id,completed ,deadline,failed} = doc.data();
       if(deadline){
           const dead_line:taskDeadline={
             date:deadline,
@@ -535,6 +543,7 @@ const getTaskLists = async (dispatch:AppDispatch) => {
         tasks: tasks,
         userId: userId,
         completed:completed,
+        failed:failed,
         deadline: deadline ? convertTime(deadline.toDate()) : ''
       });
     });

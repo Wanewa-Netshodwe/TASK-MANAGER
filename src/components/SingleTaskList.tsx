@@ -1,13 +1,13 @@
-import { faAdd, faCalendar, faCaretDown, faCaretUp, faCheckCircle, faEllipsisVertical, faPen, faSave, faShare, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faAdd, faCalendar, faCaretDown, faCaretUp, faCheckCircle, faClose, faEllipsisVertical, faPen, faSave, faShare, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { forwardRef, useState } from 'react'
 import Tasks from './Tasks.tsx'
 import { taskListType, userType } from '../Types.ts'
 import Spinner from './Spinner.tsx'
-import { BE_addTask, BE_AssignTask, BE_completed, BE_deleteTaskList, BE_saveTaskList, BE_setdeadLine, createdChat, getUserid } from '../backend/Queries.ts'
+import { BE_addTask, BE_AssignTask, BE_completed, BE_deleteTaskList, BE_saveTaskList, BE_setdeadLine, BE_setFailed, createdChat, getUserid } from '../backend/Queries.ts'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../redux/store.ts'
-import { collapseAll, defaultTaskList, setShowmodal, switchToTastListEditMode } from '../redux/TaskListSlice.ts'
+import { collapseAll, defaultTaskList, setFailed, setShowmodal, switchToTastListEditMode } from '../redux/TaskListSlice.ts'
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -16,6 +16,7 @@ import  Button  from './Button.tsx'
 import { useNavigate } from 'react-router-dom'
 import Userheaderprofile from './Userheaderprofile.tsx'
 import { setShareUsers } from '../redux/userSlice.ts'
+import { convertTime } from '../utils/ConvertTime.ts'
 
 type TaskListProps = {
   tasklist?:taskListType
@@ -23,10 +24,26 @@ type TaskListProps = {
 
 
 const  SingleTaskList = forwardRef(({tasklist}: TaskListProps,ref:React.LegacyRef<HTMLDivElement>) => {
+  const deadlines = useSelector((state:RootState)=>state.tasklist.tasksDeadlines)
+  const dispatch = useDispatch()
   const currentDate = Date.now()
+  deadlines.forEach(dl=>{
+    if(dl.id === tasklist?.id){
+      if(!tasklist.failed){
+      const diff = dl.date.seconds*1000 -currentDate 
+      const days = diff/(1000 * 60 * 60 * 24)
+      if (days <0){
+        BE_setFailed(dispatch,dl.id)
+      }
+    }
+
+    }
+  })
+ 
   console.log(tasklist?.deadline)
   console.log(currentDate)
   const [selectedDate, setSelectedDate] = useState(null);
+  const [sharemodal, setsharemodal] = useState(false);
   const [isloading, setisloading] = useState(false);
   const goto = useNavigate()
   const handleDatesave = () => {
@@ -68,7 +85,7 @@ dispatch(collapseAll(obj))
     BE_addTask(dispatch,setaddtaskLoading,tasklist?.id)
 
   }
-  const dispatch = useDispatch()
+
   const d = useDispatch<AppDispatch>()
   const switchToEditMode = (id,ed)=>{
       console.log('edit mode clicked')
@@ -93,7 +110,8 @@ dispatch(collapseAll(obj))
   const chats = useSelector((state:RootState)=>state.chat.chats)
   const users = useSelector((state:RootState)=>state.user.users)
   const avaUsers = useSelector((state:RootState)=>state.user.shareAvailableUsers)
-  const sharemodal = useSelector((state:RootState)=>state.tasklist.showSharemodal)
+
+
   let people_in_chat:string[] = []
   const handleShareTask=()=>{
     console.log(users)
@@ -127,7 +145,7 @@ dispatch(collapseAll(obj))
     })
     console.log('users in chat :',usrs)
     dispatch(setShareUsers(usrs))
-    dispatch(setShowmodal())
+    setsharemodal(!sharemodal)
     console.log('availabel users ',avaUsers)
   }
   const[showmenu,setmenu] = useState(false)
@@ -169,17 +187,17 @@ dispatch(collapseAll(obj))
       
     <div className='relative'>
         {hasdeadline ? (<div className='text-start'>
-          <span style={{fontFamily:'Poppins'}} className='text-[13px]  p-2 text-gray-200 '>Deadline</span>
-        <p style={{fontFamily:'Poppins'}} className='text-[11px] font-mono p-2 text-start text-gray-50 '>{tasklist?.deadline}</p>
+          <span style={{fontFamily:'Poppins'}} className={`text-[13px]  p-2 ${completed ? 'text-green-500' : tasklist?.failed ? 'text-red-500' : 'text-gray-200' }  `}>Deadline</span>
+        <p style={{fontFamily:'Poppins'}} className={`text-[11px] font-mono p-2 text-start ${completed ? 'text-green-400' : tasklist?.failed ? 'text-red-500' : 'text-gray-200' }  `}>{tasklist?.deadline}</p>
 
         </div>) : <div className=' h-[58px]'></div>}
 
           {
             sharemodal && <>
-             <div className='border-2 flex flex-col gap-2 w-fit p-3'>
-            <h3 className="text-white text-center">Available users</h3>
+             <div className='absolute z-10 w-56  bg-purple-700 rounded-sm border-2 flex h-fit flex-col gap-2  '>
+            <h3 style={{fontFamily:'Poppins'}} className="text-purple-100 text-center p-2  ">Available users</h3>
             {avaUsers.length >0 ?  avaUsers.map(user=>
-            <> <div className=' cursor-pointer' onClick={()=>{handleclickshare(user)}}>
+            <> <div className=' cursor-pointer p-2 mb-2 hover:bg-purple-800' onClick={()=>{handleclickshare(user)}}>
               <Userheaderprofile key={user.id} user={user} display />
             </div>
             </>
@@ -200,7 +218,7 @@ dispatch(collapseAll(obj))
         
         
       <div className={`bg-gray-100 w-full md:w-[300px] min-h-[180px] ${deadline  ? '  md:rounded-l-md  md:rounded-r-none' : ''} rounded-md  overflow-hidden`}>
-            <div className={`flex  md:gap-2  h-11 ${ completed ? 'bg-green-400' :'bg-purple-700'} justify-start items-center`}>
+            <div className={`flex  md:gap-2  h-11 ${ completed ? 'bg-green-400' : tasklist?.failed ? 'bg-red-600' : 'bg-purple-700'} justify-start items-center`}>
             {tasklist?.editMode ?( <input style={{fontFamily:'Poppins'}} 
             value={homeTitle} onChange={(e)=>{sethomeTitle(e.target.value)}}
              placeholder={homeTitle} className=' bg-transparent mx-2  px-2 text-[13px]  border-2 rounded-md  border-gray-200
@@ -215,13 +233,13 @@ dispatch(collapseAll(obj))
              }
                 <div className="flex gap-1 justify-end items-center">
                   {saveLoading ?  <Spinner/> : <FontAwesomeIcon onClick={()=>{completed ? nothing() : tasklist?.editMode ? handleSaveTaskListTitle() : switchToEditMode(tasklist?.id,iseditMode)}}
-                   className={` w-3  text-gray-200 h-3 rounded-full p-2 ${completed ? 'hover:bg-gray-100 hover:text-green-400' :'hover:bg-purple-800' } `} icon={tasklist?.editMode ? faSave : faPen}></FontAwesomeIcon>
+                   className={` w-3  text-gray-200 h-3 rounded-full p-2 ${completed ? 'hover:bg-gray-100 hover:text-green-400' : tasklist?.failed ? 'hover:bg-gray-100 hover:text-red-600' :'hover:bg-purple-800' } `} icon={tasklist?.editMode ? faSave : faPen}></FontAwesomeIcon>
                  }
                  {deleteLoading ? <Spinner/> : <FontAwesomeIcon  onClick={()=>{handleDelete()}}
-                  className={` w-3  text-gray-200 h-3 rounded-full p-2 ${completed ? 'hover:bg-gray-100 hover:text-green-400' :'hover:bg-purple-800' } `}  icon={faTrash}></FontAwesomeIcon> }
+                  className={` w-3  text-gray-200 h-3 rounded-full p-2 ${completed ? 'hover:bg-gray-100 hover:text-green-400' : tasklist?.failed ? 'hover:bg-gray-100 hover:text-red-600' :'hover:bg-purple-800' } `}  icon={faTrash}></FontAwesomeIcon> }
                 
                 {/* <FontAwesomeIcon onClick={()=>{handleCollapseAll(); setcollapsedall(!collapsedall)}} className=' w-4 on text-gray-200 h-4 rounded-full p-2 hover:bg-purple-800' icon={ collapsedall ? faCaretDown :faCaretUp  }></FontAwesomeIcon> */}
-                <FontAwesomeIcon  onClick={()=>{setmenu(!showmenu)}}  className={` w-3  text-gray-200 h-3 rounded-full p-2 ${completed ? 'hover:bg-gray-100 hover:text-green-400' :'hover:bg-purple-800' } `}  icon={faEllipsisVertical}></FontAwesomeIcon> 
+                <FontAwesomeIcon  onClick={()=>{setmenu(!showmenu)}}  className={` w-3  text-gray-200 h-3 rounded-full p-2 ${completed ? 'hover:bg-gray-100 hover:text-green-400' : tasklist?.failed ? 'hover:bg-gray-100 hover:text-red-600' :'hover:bg-purple-800' } `}  icon={faEllipsisVertical}></FontAwesomeIcon> 
                 </div>
             </div>
                 {tasklist?.tasks && tasklist?.tasks?.length >0 ?
@@ -236,7 +254,7 @@ dispatch(collapseAll(obj))
       
       
         
-        {!completed && (
+        {!completed && !tasklist?.failed && (
   <div className='flex justify-center items-center absolute -bottom-[11px] -left-3 bg-purple-600 hover:bg-purple-800 w-11 h-11 rounded-full p-2'>
     {addtaskLoading ? <Spinner /> : (
       <FontAwesomeIcon 
@@ -251,10 +269,14 @@ dispatch(collapseAll(obj))
 
       {showmenu && <><div className='bg-gray-50 w-[110px] absolute top-[102px] right-0 rounded-md'>
               <ul onClick={()=>setmenu(!showmenu)} className='p-1 text-start'>
-                <li onClick={()=>{handleCollapseAll(); setcollapsedall(!collapsedall)}} className='p-2 hover:bg-purple-100 w-full text-[12px] flex items-center '><FontAwesomeIcon className='pr-3' icon={ collapsedall ? faCaretDown :faCaretUp  }/><button>Collapse</button></li>
-                <li onClick={()=>{handleShareTask()}}  className='  text-gray-300 w-full text-[12px] flex items-center p-2 bg'><FontAwesomeIcon className='pr-3' icon={faShare}/><button disabled>Share Task</button></li>
-                <li onClick={()=>{setdeadline(!deadline)}} className={`${completed ? 'text-gray-300' : 'hover:bg-purple-100' } w-full text-[11px] flex items-center p-2`}><FontAwesomeIcon className='pr-3' icon={faCalendar}/>{ completed ? <button disabled>Set Deadline</button> : <button>Set Deadline</button> }</li>
-                <li onClick={()=>{handlecompleted()}} className={`${completed ? 'text-green-400': 'hover:bg-purple-100'}  w-full text-[12px] flex items-center p-2`}><FontAwesomeIcon className='pr-3' icon={faCheckCircle}/>{ completed ? <button disabled>Done</button> : <button>Completed</button> }</li>
+                <li onClick={()=>{completed ? nothing() : tasklist?.failed ? nothing() :  handleCollapseAll(); setcollapsedall(!collapsedall)}} className='p-2 hover:bg-purple-100 w-full text-[12px] flex items-center '><FontAwesomeIcon className='pr-3' icon={ collapsedall ? faCaretDown :faCaretUp  }/><button>Collapse</button></li>
+                <li onClick={()=>{completed ? nothing() : tasklist?.failed ? nothing() :  handleShareTask()}}  className={` ${completed ? "text-gray-300" : tasklist?.failed ? 'text-gray-300' : 'hover:bg-purple-100'}  w-full text-[12px] flex items-center p-2 `}><FontAwesomeIcon className='pr-3' icon={faShare}/><button >Share Task</button></li>
+                <li onClick={()=>{completed ? nothing() : tasklist?.failed ? nothing() :  setdeadline(!deadline)}} className={`${completed ? 'text-gray-300' :tasklist?.failed ? 'text-gray-300' : 'hover:bg-purple-100' } w-full text-[11px] flex items-center p-2`}><FontAwesomeIcon className='pr-3' icon={faCalendar}/>{ completed ? <button >Set Deadline</button>: tasklist?.failed ?
+                <button >Set Deadline</button>
+                : <button>Set Deadline</button> }</li>
+                <li onClick={ ()=>{completed ? nothing() : tasklist?.failed ? nothing() :  handlecompleted()}} className={`${completed ? 'text-green-400': tasklist?.failed ? 'text-red-600'  :  'hover:bg-purple-100'}  w-full text-[12px] flex items-center p-2`}><FontAwesomeIcon className='pr-3' icon={tasklist?.failed ? faClose :  faCheckCircle}/>{ completed ? <button disabled>Done</button>
+                : tasklist?.failed ?  <button disabled>incomplete</button>
+                : <button>Completed</button> }</li>
               </ul>
           </div></> }
 
