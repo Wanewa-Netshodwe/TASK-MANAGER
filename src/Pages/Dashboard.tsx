@@ -28,7 +28,7 @@ export default function Dashboard({}: Props) {
   return (
 
     
-    <FlipMove className='p-6 flex flex-wrap  justify-center gap-10'>
+    <FlipMove className='p-6 flex flex-wrap  justify-center gap-12'>
        
       
       { loading ? <h1></h1> : tasks.length>0 ?

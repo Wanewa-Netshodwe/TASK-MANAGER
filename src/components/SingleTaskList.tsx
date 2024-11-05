@@ -1,4 +1,4 @@
-import { faAdd, faCalendar, faCaretDown, faCaretUp, faCheckCircle, faClose, faEllipsisVertical, faPen, faSave, faShare, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faAdd, faCalendar, faCaretDown, faCaretRight, faCaretUp, faCheckCircle, faClose, faEllipsisVertical, faPen, faSave, faShare, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { forwardRef, useState } from 'react'
 import Tasks from './Tasks.tsx'
@@ -110,6 +110,7 @@ dispatch(collapseAll(obj))
   const chats = useSelector((state:RootState)=>state.chat.chats)
   const users = useSelector((state:RootState)=>state.user.users)
   const avaUsers = useSelector((state:RootState)=>state.user.shareAvailableUsers)
+  const [showing,setShowing] = useState(false)
 
 
   let people_in_chat:string[] = []
@@ -165,6 +166,7 @@ dispatch(collapseAll(obj))
   const nothing=()=>{
 
   }
+  console.log("shared users :",tasklist?.assignedUserIds)
   const handleclickshare =(user:userType)=>{
     console.log('clicked user id : ',user.id)
     const valid = window.confirm(`are you sure u want to share task(${tasklist?.title}) with user : ${user.username}`)
@@ -186,6 +188,8 @@ dispatch(collapseAll(obj))
       <div className='flex flex-col md:flex-row' >
       
     <div className='relative'>
+    
+
         {hasdeadline ? (<div className='text-start'>
           <span style={{fontFamily:'Poppins'}} className={`text-[13px]  p-2 ${completed ? 'text-green-500' : tasklist?.failed ? 'text-red-500' : 'text-gray-200' }  `}>Deadline</span>
         <p style={{fontFamily:'Poppins'}} className={`text-[11px] font-mono p-2 text-start ${completed ? 'text-green-400' : tasklist?.failed ? 'text-red-500' : 'text-gray-200' }  `}>{tasklist?.deadline}</p>
@@ -194,26 +198,41 @@ dispatch(collapseAll(obj))
 
           {
             sharemodal && <>
-             <div className='absolute z-10 w-56  bg-purple-700 rounded-sm border-2 flex h-fit flex-col gap-2  '>
-            <h3 style={{fontFamily:'Poppins'}} className="text-purple-100 text-center p-2  ">Available users</h3>
-            {avaUsers.length >0 ?  avaUsers.map(user=>
-            <> <div className=' cursor-pointer p-2 mb-2 hover:bg-purple-800' onClick={()=>{handleclickshare(user)}}>
-              <Userheaderprofile key={user.id} user={user} display />
-            </div>
-            </>
-                
-
-            )
-            :<><h1>no user found</h1></>
-            }
-           
-          </div>
+             
             
             </>
           }
-         
-       
 
+          {
+             tasklist?.assignedUserIds?.length!! > 1 && 
+             
+             <>
+               <div style={{fontFamily:'Poppins'}}  className='absolute -bottom-8 left-7 text-gray-300 text-[10px]'>
+        <p className='text-gray-50'>participants</p>
+        <span>{JSON.parse(localStorage.getItem('user')!!).username}  </span>
+        
+        
+       
+        {
+  tasklist?.assignedUserIds?.length!! > 1 && (
+    tasklist?.assignedUserIds?.map(id =>
+      users.map(u => (
+        u.id === id && (
+          <span key={u.id}>{u.username} </span>
+        )
+      ))
+    )
+  ) 
+}
+
+       </div>
+
+             
+             
+             </>
+          }
+         
+     
         
         
         
@@ -270,7 +289,26 @@ dispatch(collapseAll(obj))
       {showmenu && <><div className='bg-gray-50 w-[110px] absolute top-[102px] right-0 rounded-md'>
               <ul onClick={()=>setmenu(!showmenu)} className='p-1 text-start'>
                 <li onClick={()=>{completed ? nothing() : tasklist?.failed ? nothing() :  handleCollapseAll(); setcollapsedall(!collapsedall)}} className='p-2 hover:bg-purple-100 w-full text-[12px] flex items-center '><FontAwesomeIcon className='pr-3' icon={ collapsedall ? faCaretDown :faCaretUp  }/><button>Collapse</button></li>
-                <li onClick={()=>{completed ? nothing() : tasklist?.failed ? nothing() :  handleShareTask()}}  className={` ${completed ? "text-gray-300" : tasklist?.failed ? 'text-gray-300' : 'hover:bg-purple-100'}  w-full text-[12px] flex items-center p-2 `}><FontAwesomeIcon className='pr-3' icon={faShare}/><button >Share Task</button></li>
+                <li onMouseEnter={()=>{setShowing(true)}} onMouseLeave={()=>{setShowing(false)}} onClick={()=>{completed ? nothing() : tasklist?.failed ? nothing() :  handleShareTask()}}  className={` ${completed ? "text-gray-300" : tasklist?.failed ? 'text-gray-300' : 'hover:bg-purple-100'}  w-full text-[12px] flex items-center p-2 relative `}><FontAwesomeIcon className='pr-3' icon={faShare}/><button >Share Task</button>{!completed && !tasklist?.failed && showing && <FontAwesomeIcon className='pl-2' icon={faCaretRight} />} 
+                {!completed && !tasklist?.failed &&  showing && <>
+                  <div className='absolute top-1 -right-20 z-10 w-20 bg-gray-50   text-[11px] h-fit  '>
+            {avaUsers.length >0 ?  avaUsers.map(user=>
+            <> <div  style={{fontFamily:'Poppins'}}  className=' cursor-pointer   ' onClick={()=>{handleclickshare(user)}}>
+              <p className=' p-2 hover:bg-purple-300 text-black'>{user.username}</p>
+            </div>
+            </>
+                
+
+            )
+            :<><h1 className=' p-2 hover:bg-purple-300 text-black'>no users found</h1></>
+            }
+           
+          </div>
+                
+                </>}
+                
+                
+                </li>
                 <li onClick={()=>{completed ? nothing() : tasklist?.failed ? nothing() :  setdeadline(!deadline)}} className={`${completed ? 'text-gray-300' :tasklist?.failed ? 'text-gray-300' : 'hover:bg-purple-100' } w-full text-[11px] flex items-center p-2`}><FontAwesomeIcon className='pr-3' icon={faCalendar}/>{ completed ? <button >Set Deadline</button>: tasklist?.failed ?
                 <button >Set Deadline</button>
                 : <button>Set Deadline</button> }</li>

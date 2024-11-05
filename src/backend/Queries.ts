@@ -239,6 +239,10 @@ export const BE_AssignTask =async(listid:string,assigneeId:string,goto:NavigateF
   const dref = doc(db,TASKCOLLECTION,listid)
   const docRef = await getDoc(dref)
   const {assignedUserIds,} = docRef.data()
+  if(assignedUserIds.includes(assigneeId) ){
+    error('task already shared with user')
+    return
+  }
   assignedUserIds.push(assigneeId)
 
   await updateDoc(dref,{
@@ -527,7 +531,7 @@ const getTaskLists = async (dispatch:AppDispatch) => {
     }
   
     const promises = tasklistSnapshot.docs.map(async (doc) => {
-      const { title, userId, id,completed ,deadline,failed} = doc.data();
+      const { title, userId, id,completed ,deadline,failed,assignedUserIds} = doc.data();
       if(deadline){
           const dead_line:taskDeadline={
             date:deadline,
@@ -544,7 +548,8 @@ const getTaskLists = async (dispatch:AppDispatch) => {
         userId: userId,
         completed:completed,
         failed:failed,
-        deadline: deadline ? convertTime(deadline.toDate()) : ''
+        deadline: deadline ? convertTime(deadline.toDate()) : '',
+        assignedUserIds:assignedUserIds
       });
     });
   
