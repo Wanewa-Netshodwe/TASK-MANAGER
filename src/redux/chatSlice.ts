@@ -24,7 +24,7 @@ const chats=createSlice({
     initialState,
     reducers:{
         setChatTab:(state,action)=>{
-            console.log(action.payload)
+           
             state.ischatTab = action.payload
         },
         setChats:(state,action)=>{

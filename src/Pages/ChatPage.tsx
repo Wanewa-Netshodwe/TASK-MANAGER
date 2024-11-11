@@ -20,7 +20,7 @@ export default function ChatPage({}: Props) {
      <RightSidebar className='' />
      </>
      
-     : <h1 className='text-white'>No Chat Selected</h1>}
+     : <h1 style={{fontFamily: 'Poppins'}}  className='p-3 text-white'>No Chat Selected</h1>}
 
       </div>
   )

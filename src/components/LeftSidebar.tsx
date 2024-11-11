@@ -22,8 +22,8 @@ export default function Leftsidebar({className}: Props) {
     let ischat = useSelector((state:RootState) =>state.chat.ischatTab)
     let users = useSelector((state:RootState)=>state.user.users)
     let chats = useSelector((state:RootState)=>state.chat.chats)
-    let usersloading = useSelector((state:RootState)=>state.user.usersloading)
-    console.log(ischat)
+    // let usersloading = useSelector((state:RootState)=>state.user.usersloading)
+   
   return (
     <div className={`${className}`}>
         <Sidebar>
@@ -46,7 +46,7 @@ export default function Leftsidebar({className}: Props) {
         {users.length > 0 ? (
             users.map(u => <Users key={u.id} user={u} />)
         ) : (
-            <h1 className='text-white'>no users found</h1>
+            <h1 className='text-white p-2 text-[12px] font-mono'>no users found invite ur colleagues to join the chat</h1>
         )}
     </FlipMove>
 )}

@@ -46,12 +46,12 @@ dispatch:AppDispatch
                 const userinfo = await AddUserToCollection(user.uid,user.email || '',imgLink,username)
                 isLoading(false)
                 reset()
-                console.log(userinfo)
+                
                 dispatch(setUser(userinfo))
                 goTo("/dashboard")
             })
             .catch(err=>{
-                console.log(err.code)
+                
                 catchError(err.code)
                 isLoading(false)
                 reset()
@@ -80,14 +80,14 @@ dispatch:AppDispatch
             .then(async({user})=>{
                 await updateUserinfo({id:user.uid , isOnline:true})
                 const userinfo = await getUserInfo(user.uid)
-                console.log(userinfo)
+                
                 dispatch(setUser(userinfo))
                 isLoading(false)
                 reset()
                 goTo("/dashboard")
             })
             .catch(err=>{
-                console.log(err.code)
+                
                 catchError(err.code)
                 isLoading(false)
                 reset()
@@ -95,13 +95,22 @@ dispatch:AppDispatch
         }
 }
 export const BE_signout= async (dispatch:AppDispatch,goto:NavigateFunction,loading:setLoading)=>{
-    signOut(auth)
-    loading(true)
+  loading(true)
+  await signOut(auth)
+  
     const u = JSON.parse(localStorage.getItem('user') || '')
-    u.id ? await updateUserinfo({id:u.id,isOffline:true})  : console.log('user id is empty')
-    localStorage.removeItem('user')
-    dispatch(setUser(defaultUser))
-    goto("/")
+    if(u.id){
+      await updateUserinfo({id:u.id,isOffline:true}) 
+      localStorage.removeItem('user')
+      
+       goto("/jj")
+    }
+    else{
+      goto("/jjejj")
+      localStorage.removeItem('user')
+      
+    }
+  
     loading(false)
 }
 export const BE_updateProfile= async(
@@ -269,10 +278,10 @@ export const BE_addTaskList = async(
         userId: getUserid(),
         assignedUserIds:[getUserid()],
         deadline:"",
-        completed:false
+        completed:false,
+        failed:false
     });
 
-    console.log("Document written with ID: ", docRef.id);
     await updateDoc(docRef,{
         id:docRef.id
     })
@@ -296,7 +305,7 @@ export const BE_addTaskList = async(
     setLoading(false)
 }
 export const BE_completed = async(dispatch,id,goto)=>{
-  console.log(id)
+  
   const dref = doc(db,TASKCOLLECTION,id)
   await updateDoc(dref,{
     completed:true
@@ -325,10 +334,10 @@ export const BE_getAllTasksList= async(
     dispatch:AppDispatch,
     loading:setLoading
 )=>{
-    const tasks = await getTaskLists(dispatch)
-    console.log('return of get all task: ',tasks)
-    loading(false)
+    
+    const tasks = await getTaskLists(dispatch) 
     dispatch(setTaskList(tasks))
+    loading(false)
     
 }
 export const BE_saveTaskList= async(
@@ -521,12 +530,12 @@ const getTaskLists = async (dispatch:AppDispatch) => {
     let tasklists: taskListType[] = [];
     const userId = getUserid();
     const q = query(collection(db, TASKLISTCOLLECTION), where("assignedUserIds", "array-contains", userId));
-    console.log('Query object:', q);
+    
   
     const tasklistSnapshot = await getDocs(q);
   
     if (tasklistSnapshot.empty) {
-      console.log('No matching documents.');
+      
       return tasklists;
     }
   
@@ -563,7 +572,7 @@ const getTaskLists = async (dispatch:AppDispatch) => {
 
 const getTasks = async(listid,id)=>{
     let tasks:taskType[] = []
-    console.log('list id :',listid)
+    
     const taskListDocRef = doc(db, TASKLISTCOLLECTION, listid); 
     const tasksCollectionRef = collection(taskListDocRef, TASKLISTCOLLECTION); 
     
@@ -667,7 +676,7 @@ export const BE_getCharts= async(
           updatedAt:updatedAt
         })
       })
-      console.log('my chats :',chats)
+      
       dispatch(setChats(chats))
 
     })

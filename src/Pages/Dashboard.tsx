@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../redux/store.ts'
 import { BE_getAllTasksList } from '../backend/Queries.ts'
 import FlipMove from 'react-flip-move'
+import Spinner from '../components/Spinner.tsx'
 
 type Props = {}
 
@@ -16,11 +17,15 @@ export default function Dashboard({}: Props) {
   const dispatch = useDispatch<AppDispatch>()
   const [loading ,setloading] =useState(true)
   useEffect(()=>{
-    const get = async()=>{
-      await BE_getAllTasksList(dispatch,setloading)
+    const localStorageUser =localStorage.getItem('user')
+    if (localStorageUser){
+      const get = async()=>{
+        await BE_getAllTasksList(dispatch,setloading)
+      }
+      
+      get()
     }
-    
-    get()
+   
    
   },[])
  
@@ -31,13 +36,15 @@ export default function Dashboard({}: Props) {
     <FlipMove className='p-6 flex flex-wrap  justify-center gap-12'>
        
       
-      { loading ? <h1></h1> : tasks.length>0 ?
+      {  tasks.length>0 ?
      
       tasks.map(t => 
         
         <SingleTaskList key={t.id} tasklist={t} ></SingleTaskList>
       )
       : 
+      loading ? <></>
+      :
       <>
       <div className='flex justify-center flex-col mt-16 gap-5'>
       <h1 style={{fontFamily:'Poppins'}}  className=' text-txt_color  uppercase'>No Tasks Found </h1>

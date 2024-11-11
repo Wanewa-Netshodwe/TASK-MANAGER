@@ -13,8 +13,8 @@ type Props = {
 
 
 export default function Form({login,s}:Props) {
-   const [username,setUsername] = useState('')
-   const [password,setPassword] = useState('')
+   const [username,setUsername] = useState('DefaultUser@gmail.com')
+   const [password,setPassword] = useState('1234567')
    const [email,setEmail] = useState('')
    const [signupLoading,setSignupLoading] = useState(false)
    const dispatch = useDispatch<AppDispatch>()
@@ -45,8 +45,8 @@ export default function Form({login,s}:Props) {
     
     `} >
       {!login && <><label style={{fontFamily:'Poppins'}}  className='text-[10px] ml-2  text-gray-200'>Enter Email</label>  <Input value={email} onChange={(e)=>{setEmail(e.target.value)}} iconClass={faEnvelope} name='Email' type='email'></Input> </>}
-      <label style={{fontFamily:'Poppins'}}  className='text-[10px] ml-2  text-gray-200'>Username</label>
-      <Input value={username} onChange={(e)=>{setUsername(e.target.value)}} iconClass={faUser} name='Username'></Input>
+      <label style={{fontFamily:'Poppins'}}  className='text-[10px] ml-2  text-gray-200'>{!login ? <>Username</> :<>Email</>  }</label>
+      <Input value={username} onChange={(e)=>{setUsername(e.target.value)}} iconClass={faUser} name={`${!login ? "Username" : "Email"  }`} ></Input>
       <label style={{fontFamily:'Poppins'}}  className='text-[10px] ml-2  text-gray-200'>Password</label>
       <Input value={password} onChange={(e)=>{setPassword(e.target.value)}} iconClass={faLock} s='mb-5'  type='password' name='Password '></Input>
       {login ? <Button s='flex bg-purple-600 hover:bg-opacity-50'  loading={signupLoading} onClick={()=>{handleLogin()}} name='Login'></Button> : <Button s='flex bg-purple-600 hover:bg-opacity-50' onClick={()=>{handleSignup()}} loading={signupLoading} name='Register '></Button>}

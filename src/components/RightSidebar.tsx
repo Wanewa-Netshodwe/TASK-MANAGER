@@ -18,19 +18,19 @@ export default function RightSidebar({className}:Prop) {
             <img className='w-full h-full ring-2  ring-white rounded-full'  src={currentSelectedChat.img} alt="userimage" />
             <span className={`absolute flex h-5 w-5 top-0 ring-2 ring-white right-6 ${currentSelectedChat.isOnline ? 'bg-green-500' : 'bg-gray-600' } rounded-full`}></span>
         </div>
-        <div className='mt-2 flex justify-start gap-2 px-4'>
+        <div className='mt-2 flex justify-start gap-2 px-4 text-white'>
             <span className='text-gray-400'>Username : </span><p>{currentSelectedChat.username}</p>
         </div>
-        <div className='mt-2 flex justify-start gap-2 px-4'>
+        <div className='mt-2 flex justify-start gap-2 px-4 text-white'>
             <span className='text-gray-400'>email : </span><p>{currentSelectedChat.email}</p>
         </div>
-        <div className='mt-2 flex justify-start gap-2 px-4'>
+        <div className='mt-2 flex justify-start gap-2 px-4 text-white'>
             <span className='text-gray-400'>Joined in : </span><p>{currentSelectedChat.creation_Time}</p>
         </div>
-        <div className='mt-2 flex justify-start gap-2 px-4'>
+        <div className='mt-2 flex justify-start gap-2 px-4 text-white'>
             <span className='text-gray-400'>Last seen : </span><p>{currentSelectedChat.last_seen}</p>
         </div>
-        <div className='mt-2 flex justify-start gap-2 px-4'>
+        <div className='mt-2 flex justify-start gap-2 px-4 text-white'>
             <span className='text-gray-400'>bio : </span><p>{currentSelectedChat.bio}</p>
         </div>
 

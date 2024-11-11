@@ -14,7 +14,7 @@ export default function SingleLoaderList() {
 function SingleLoader(){
     return(
         <div className='relative'>
-        <div className="bg-[#d6d5d7] w-full md:w-[280px] min-h-[150px] rounded-md overflow-hidden">
+        <div className="bg-[#d6d5d7] w-full md:w-[250px] min-h-[150px] rounded-md overflow-hidden">
             <div className=" animate-pulse flex flex-wrap md:gap-3 h-11 bg-gray-400 justify-start items-center">
                
                 

@@ -40,8 +40,6 @@ const  SingleTaskList = forwardRef(({tasklist}: TaskListProps,ref:React.LegacyRe
     }
   })
  
-  console.log(tasklist?.deadline)
-  console.log(currentDate)
   const [selectedDate, setSelectedDate] = useState(null);
   const [sharemodal, setsharemodal] = useState(false);
   const [isloading, setisloading] = useState(false);
@@ -57,7 +55,7 @@ const  SingleTaskList = forwardRef(({tasklist}: TaskListProps,ref:React.LegacyRe
 
   const handleDateChange = (newDate) => {
     setSelectedDate(newDate);
-    console.log(newDate.$d); 
+    
   };
 
   const tasksList = useSelector((state:RootState) =>
@@ -71,7 +69,7 @@ const  SingleTaskList = forwardRef(({tasklist}: TaskListProps,ref:React.LegacyRe
  }
  
  const tasks = current_taskList.tasks;
- console.log(tasks)
+
  const handleCollapseAll=()=>{
   const obj ={
     id:tasklist?.id,
@@ -88,7 +86,7 @@ dispatch(collapseAll(obj))
 
   const d = useDispatch<AppDispatch>()
   const switchToEditMode = (id,ed)=>{
-      console.log('edit mode clicked')
+      
         const taskinfo = {
           id : id,
           value:ed = !ed
@@ -115,49 +113,39 @@ dispatch(collapseAll(obj))
 
   let people_in_chat:string[] = []
   const handleShareTask=()=>{
-    console.log(users)
-    if (chats.length < 1){
-      console.log('i have no chats')
-    }
+    
     chats.forEach(c=>{
       if(createdChat(c.senderId)){
         people_in_chat.push(c.recieverId)
-        console.log(`im in a chat with : ${c.recieverId}`)
+       
       }
       else{
         if (getUserid() === c.recieverId){
             people_in_chat.push(c.senderId)
-            console.log(`im in a chat with : ${c.senderId}`)
-        }else{
-          console.log('no chat found')
+            
         }
       }
     })
     let usrs:userType[]=[]
     people_in_chat.forEach(p=>{
-      console.log(p)
       users.forEach(user=>{
-        console.log(user.id)
         if(p === user.id){
-          console.log('user :', user)
           usrs.push(user)
         }
       })
     })
-    console.log('users in chat :',usrs)
+  
     dispatch(setShareUsers(usrs))
     setsharemodal(!sharemodal)
     console.log('availabel users ',avaUsers)
   }
   const[showmenu,setmenu] = useState(false)
   const handleSaveTaskListTitle =() =>{
-    console.log('id is :' , tasklist?.id)
+    
     if(tasklist?.id){
       BE_saveTaskList(dispatch,tasklist?.id,homeTitle|| '',setsaveLoading)
     }
-    else{
-      console.log('id is null')
-    }
+    
   }
   const handleDelete=()=>{
     if (tasklist)
@@ -166,17 +154,15 @@ dispatch(collapseAll(obj))
   const nothing=()=>{
 
   }
-  console.log("shared users :",tasklist?.assignedUserIds)
+  
   const handleclickshare =(user:userType)=>{
-    console.log('clicked user id : ',user.id)
+   
     const valid = window.confirm(`are you sure u want to share task(${tasklist?.title}) with user : ${user.username}`)
    if(valid){
     if(tasklist?.id)
     BE_AssignTask(tasklist?.id,user.id,goto)
   setShowmodal()
-    console.log('valid')
-   }else{
-    console.log('false')
+    
    }
   }
   
@@ -340,13 +326,7 @@ dispatch(collapseAll(obj))
 
       </div>
      
-
-      
-      
-      
-      
-      
-        
+   
     </div>
   )
 })

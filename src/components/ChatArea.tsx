@@ -68,7 +68,7 @@ export default function ChatArea({className}: Props) {
 ) 
 
 : (
-    <><h1 className='text-white'>No Messages Yet</h1></>
+    <><h1 style={{fontFamily: 'Poppins'}}  className='p-2 text-white'>No Messages Yet</h1></>
 )}
 
 
@@ -77,7 +77,7 @@ export default function ChatArea({className}: Props) {
 
       </div>
     
-      <div className='flex flex-row  items-center gap-4'>
+      <div className='flex flex-row  items-center gap-2 md:gap-4'>
       <div className='mt-2 border flex-1 rounded-full p-1 flex gap-5 items-center bg-gray-200'>
 
 <FontAwesomeIcon onClick={()=>{setshowemoji(!showemoji)}} className='text-secondary text-[22px] px-2' icon ={faFaceSmile} />
