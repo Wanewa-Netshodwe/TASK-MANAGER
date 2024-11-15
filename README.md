@@ -1,6 +1,8 @@
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## visit the live site
+[live site](https://github.com/Wanewa-Netshodwe)
 
 ## Available Scripts
 
